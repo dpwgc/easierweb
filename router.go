@@ -1,6 +1,7 @@
 package easierweb
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
@@ -84,6 +85,15 @@ func (r *Router) AddMiddlewares(middlewares ...Method) *Router {
 
 func (r *Router) Run(addr string) error {
 	return http.ListenAndServe(addr, r.router)
+}
+
+func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig *tls.Config) error {
+	server := http.Server{
+		Addr:      addr,
+		Handler:   r.router,
+		TLSConfig: tlsConfig,
+	}
+	return server.ListenAndServeTLS(certFile, keyFile)
 }
 
 func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Request, par httprouter.Params) {
