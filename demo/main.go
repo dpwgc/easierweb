@@ -43,19 +43,19 @@ func main() {
 func DemoGet(ctx *easierweb.Context) {
 
 	// 获取URI参数
-	fmt.Println("id:", ctx.Path.GetInt64("id"))
+	fmt.Println("id:", ctx.Path.Int64("id"))
 
 	// 获取Query参数列表
 	fmt.Println("query keys:", ctx.Query.Keys())
 	fmt.Println("query values:", ctx.Query.Values())
 
 	// 获取Query参数
-	fmt.Println("type:", ctx.Query.GetInt("type"))
-	fmt.Println("price:", ctx.Query.GetFloat64("price"))
+	fmt.Println("type:", ctx.Query.Int("type"))
+	fmt.Println("price:", ctx.Query.Float64("price"))
 	fmt.Println("name:", ctx.Query["name"])
 
 	// 返回
-	ctx.WriteJsonResult(http.StatusOK, ResultDTO{
+	ctx.WriteJson(http.StatusOK, ResultDTO{
 		Msg:  "hello world",
 		Data: "GET Request",
 	})
@@ -73,7 +73,7 @@ func DemoPost(ctx *easierweb.Context) {
 
 	// 序列化请求体
 	command := Command{}
-	err := ctx.BindJsonBody(&command)
+	err := ctx.BindJson(&command)
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +81,7 @@ func DemoPost(ctx *easierweb.Context) {
 	fmt.Println("id:", command.Id, ", name:", command.Name)
 
 	// 返回
-	ctx.WriteJsonResult(http.StatusOK, ResultDTO{
+	ctx.WriteJson(http.StatusOK, ResultDTO{
 		Msg:  "hello world",
 		Data: "POST Request",
 	})
@@ -92,7 +92,7 @@ func DemoPost(ctx *easierweb.Context) {
 func DemoWS(ctx *easierweb.Context) {
 
 	// 获取URI参数
-	fmt.Println("id:", ctx.Path.GetInt64("id"))
+	fmt.Println("id:", ctx.Path.Int64("id"))
 
 	// 将HTTP升级为WebSocket
 	upGrader := websocket.Upgrader{

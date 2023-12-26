@@ -83,10 +83,12 @@ func (r *Router) AddMiddlewares(middlewares ...Method) *Router {
 }
 
 func (r *Router) Run(addr string) error {
+	fmt.Println("Run ->", addr)
 	return http.ListenAndServe(addr, r.router)
 }
 
 func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig *tls.Config) error {
+	fmt.Println("RunTLS ->", addr)
 	server := http.Server{
 		Addr:      addr,
 		Handler:   r.router,
@@ -96,6 +98,7 @@ func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig 
 }
 
 func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+
 	defer func() {
 		err := recover()
 		if err != nil {
