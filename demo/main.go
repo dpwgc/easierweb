@@ -20,6 +20,12 @@ func main() {
 
 	// 启动路由
 	err := router.Run(":8082")
+	// 启动TLS路由
+	/*
+		router.RunTLS("0.0.0.0:443", "cert.pem", "private.key", &tls.Config{
+			ClientAuth: tls.NoClientCert,
+		})
+	*/
 	if err != nil {
 		panic(err)
 	}
