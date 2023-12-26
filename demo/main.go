@@ -29,12 +29,15 @@ func main() {
 // http://127.0.0.1:8082/test/demoGet/123?type=1&price=10.24&name=dpwgc
 func DemoGet(ctx *easierweb.Context) {
 
+	// 获取URI参数
 	fmt.Println("id:", ctx.Path.GetInt64("id"))
 
+	// 获取Query参数
 	fmt.Println("type:", ctx.Query.GetInt("type"))
 	fmt.Println("price:", ctx.Query.GetFloat64("price"))
 	fmt.Println("name:", ctx.Query.GetString("name"))
 
+	// 返回
 	ctx.WriteJson(http.StatusOK, ResultDTO{
 		Msg:  "hello world",
 		Data: "GET Request",
@@ -51,6 +54,7 @@ func DemoGet(ctx *easierweb.Context) {
 */
 func DemoPost(ctx *easierweb.Context) {
 
+	// 序列化请求体
 	command := Command{}
 	err := ctx.BindJson(&command)
 	if err != nil {
@@ -59,6 +63,7 @@ func DemoPost(ctx *easierweb.Context) {
 
 	fmt.Println("id:", command.Id, ", name:", command.Name)
 
+	// 返回
 	ctx.WriteJson(http.StatusOK, ResultDTO{
 		Msg:  "hello world",
 		Data: "POST Request",
@@ -68,6 +73,7 @@ func DemoPost(ctx *easierweb.Context) {
 // DemoMiddleware 中间件
 func DemoMiddleware(ctx *easierweb.Context) {
 	fmt.Println("request url:", ctx.Request.URL)
+	// 跳到下一个方法
 	ctx.Next()
 }
 
