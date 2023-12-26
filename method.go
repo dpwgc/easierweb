@@ -46,7 +46,7 @@ func (kv KV) Has(key string) bool {
 
 func (kv KV) Keys() []string {
 	var ks = make([]string, 0, len(kv))
-	for k, _ := range kv {
+	for k := range kv {
 		ks = append(ks, k)
 	}
 	return ks
@@ -85,6 +85,18 @@ func (kv KV) GetFloat64(key string) float64 {
 	return f
 }
 
+func (c *Context) BindJsonBody(obj any) error {
+	return json.Unmarshal(c.Body, obj)
+}
+
+func (c *Context) BindYamlBody(obj any) error {
+	return yaml.Unmarshal(c.Body, obj)
+}
+
+func (c *Context) BindXmlBody(obj any) error {
+	return xml.Unmarshal(c.Body, obj)
+}
+
 func (c *Context) WriteJsonResult(code int, obj any) {
 	marshal, _ := json.Marshal(obj)
 	c.WriteResult(code, marshal)
@@ -98,10 +110,6 @@ func (c *Context) WriteYamlResult(code int, obj any) {
 func (c *Context) WriteXmlResult(code int, obj any) {
 	marshal, _ := xml.Marshal(obj)
 	c.WriteResult(code, marshal)
-}
-
-func (c *Context) WriteStringResult(code int, obj string) {
-	c.WriteResult(code, []byte(obj))
 }
 
 func (c *Context) WriteResult(code int, data []byte) {

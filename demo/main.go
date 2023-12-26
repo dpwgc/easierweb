@@ -2,7 +2,6 @@ package main
 
 import (
 	"easierweb"
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -74,7 +73,7 @@ func DemoPost(ctx *easierweb.Context) {
 
 	// 序列化请求体
 	command := Command{}
-	err := json.Unmarshal(ctx.Body, &command)
+	err := ctx.BindJsonBody(&command)
 	if err != nil {
 		panic(err)
 	}
