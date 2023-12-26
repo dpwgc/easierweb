@@ -114,6 +114,7 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		Header:         make(map[string]string),
 		Path:           make(map[string]string),
 		Query:          make(map[string]string),
+		Form:           make(map[string]string),
 		Request:        req,
 		ResponseWriter: res,
 		Code:           -1,
@@ -139,6 +140,12 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 	for k, v := range req.URL.Query() {
 		if len(v) > 0 {
 			ctx.Query[k] = v[0]
+		}
+	}
+
+	for k, v := range req.Form {
+		if len(v) > 0 {
+			ctx.Form[k] = v[0]
 		}
 	}
 

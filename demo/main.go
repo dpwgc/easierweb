@@ -46,6 +46,7 @@ func DemoGet(ctx *easierweb.Context) {
 	// 获取URI参数
 	fmt.Println("id:", ctx.Path.GetInt64("id"))
 
+	// 获取Query参数列表
 	fmt.Println("query keys:", ctx.Query.Keys())
 	fmt.Println("query values:", ctx.Query.Values())
 

@@ -14,6 +14,7 @@ type Context struct {
 	Header         KV
 	Path           KV
 	Query          KV
+	Form           KV
 	Body           []byte
 	Code           int
 	Result         []byte
