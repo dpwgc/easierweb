@@ -65,7 +65,7 @@ func (r *Router) DELETE(path string, method Method) {
 	})
 }
 
-func (r *Router) ServeFiles(path string, root http.FileSystem) {
+func (r *Router) File(path string, root http.FileSystem) {
 	r.router.ServeFiles(r.contextPath+path, root)
 }
 
@@ -109,14 +109,15 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 	}()
 
 	ctx := Context{
-		index:    0,
-		methods:  append([]Method(nil), r.middlewares...),
-		Header:   make(map[string]string),
-		Path:     make(map[string]string),
-		Query:    make(map[string]string),
-		Request:  req,
-		code:     200,
-		response: nil,
+		index:          0,
+		methods:        append([]Method(nil), r.middlewares...),
+		Header:         make(map[string]string),
+		Path:           make(map[string]string),
+		Query:          make(map[string]string),
+		Request:        req,
+		ResponseWriter: res,
+		Code:           -1,
+		Result:         nil,
 	}
 
 	bodyBytes, err := io.ReadAll(req.Body)
@@ -150,6 +151,9 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 	} else {
 		method(&ctx)
 	}
-	res.WriteHeader(ctx.code)
-	_, _ = res.Write(ctx.response)
+	// code有效时，响应客户端（排除websocket连接）
+	if ctx.Code > 0 {
+		res.WriteHeader(ctx.Code)
+		_, _ = res.Write(ctx.Result)
+	}
 }
