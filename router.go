@@ -47,8 +47,7 @@ func (r *Router) POST(path string, method Method) {
 }
 
 func (r *Router) PUT(path string, method Method) {
-	path = r.contextPath + path
-	r.router.PUT(path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.PUT(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par)
 	})
 }
