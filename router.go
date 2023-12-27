@@ -122,12 +122,7 @@ func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
 	return r
 }
 
-func (r *Router) AddMiddleware(middleware Method) *Router {
-	r.middlewares = append(r.middlewares, middleware)
-	return r
-}
-
-func (r *Router) AddMiddlewares(middlewares ...Method) *Router {
+func (r *Router) Use(middlewares ...Method) *Router {
 	r.middlewares = append(r.middlewares, middlewares...)
 	return r
 }

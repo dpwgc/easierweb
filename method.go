@@ -3,11 +3,14 @@ package easierweb
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"golang.org/x/net/websocket"
 	"gopkg.in/yaml.v3"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 )
 
 type KV map[string]string
@@ -131,21 +134,21 @@ func (c *Context) GetFile(key string) (multipart.File, error) {
 
 // POST Body Bind
 
-func (c *Context) BindJson(obj any) error {
+func (c *Context) BindJSON(obj any) error {
 	return json.Unmarshal(c.Body, obj)
 }
 
-func (c *Context) BindYaml(obj any) error {
+func (c *Context) BindYAML(obj any) error {
 	return yaml.Unmarshal(c.Body, obj)
 }
 
-func (c *Context) BindXml(obj any) error {
+func (c *Context) BindXML(obj any) error {
 	return xml.Unmarshal(c.Body, obj)
 }
 
 // Result Write
 
-func (c *Context) WriteJson(code int, obj any) {
+func (c *Context) WriteJSON(code int, obj any) {
 	marshal, err := json.Marshal(obj)
 	if err != nil {
 		panic(err)
@@ -153,7 +156,7 @@ func (c *Context) WriteJson(code int, obj any) {
 	c.Write(code, marshal)
 }
 
-func (c *Context) WriteYaml(code int, obj any) {
+func (c *Context) WriteYAML(code int, obj any) {
 	marshal, err := yaml.Marshal(obj)
 	if err != nil {
 		panic(err)
@@ -161,7 +164,7 @@ func (c *Context) WriteYaml(code int, obj any) {
 	c.Write(code, marshal)
 }
 
-func (c *Context) WriteXml(code int, obj any) {
+func (c *Context) WriteXML(code int, obj any) {
 	marshal, err := xml.Marshal(obj)
 	if err != nil {
 		panic(err)
@@ -169,13 +172,44 @@ func (c *Context) WriteXml(code int, obj any) {
 	c.Write(code, marshal)
 }
 
-func (c *Context) WriteFile(contentType string, fileBytes []byte) {
-	if len(contentType) == 0 {
-		c.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
+func (c *Context) Redirect(code int, url string) {
+	http.Redirect(c.ResponseWriter, c.Request, url, code)
+}
+
+func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
+	fileBytes, err := os.ReadFile(localFilePath)
+	if err != nil {
+		panic(err)
+	}
+	c.WriteFile(contentType, fileName, fileBytes)
+}
+
+func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
+	if len(fileName) > 0 {
+		c.SetContentDisposition(fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 	} else {
-		c.ResponseWriter.Header().Set("Content-Type", contentType)
+		c.SetContentDisposition(fmt.Sprintf("attachment; filename=\"%v\"", time.Now().Unix()))
+	}
+	if len(contentType) == 0 {
+		c.SetContentType("application/octet-stream")
+	} else {
+		c.SetContentType(contentType)
 	}
 	c.Write(http.StatusOK, fileBytes)
+}
+
+func (c *Context) WriteHTML(code int, html string) {
+	c.ResponseWriter.Header().Set("Content-Type", "text/html")
+	c.Write(code, []byte(html))
+}
+
+func (c *Context) WriteString(code int, text string) {
+	c.ResponseWriter.Header().Set("Content-Type", "text/plain")
+	c.Write(code, []byte(text))
+}
+
+func (c *Context) NoContent(code int) {
+	c.Write(code, nil)
 }
 
 func (c *Context) Write(code int, data []byte) {
@@ -188,13 +222,25 @@ func (c *Context) Write(code int, data []byte) {
 	}
 }
 
+func (c *Context) SetContentType(value string) {
+	c.SetHeader("Content-Type", value)
+}
+
+func (c *Context) SetContentDisposition(value string) {
+	c.SetHeader("Content-Disposition", value)
+}
+
+func (c *Context) SetHeader(key, value string) {
+	c.ResponseWriter.Header().Set(key, value)
+}
+
 // WS Receive
 
-func (c *Context) ReceiveJson(obj any) error {
+func (c *Context) ReceiveJSON(obj any) error {
 	return websocket.JSON.Receive(c.WebsocketConn, obj)
 }
 
-func (c *Context) ReceiveYaml(obj any) error {
+func (c *Context) ReceiveYAML(obj any) error {
 	var buf string
 	err := websocket.Message.Receive(c.WebsocketConn, &buf)
 	if err != nil {
@@ -203,7 +249,7 @@ func (c *Context) ReceiveYaml(obj any) error {
 	return yaml.Unmarshal([]byte(buf), obj)
 }
 
-func (c *Context) ReceiveXml(obj any) error {
+func (c *Context) ReceiveXML(obj any) error {
 	var buf string
 	err := websocket.Message.Receive(c.WebsocketConn, &buf)
 	if err != nil {
@@ -212,17 +258,27 @@ func (c *Context) ReceiveXml(obj any) error {
 	return xml.Unmarshal([]byte(buf), obj)
 }
 
-func (c *Context) Receive(buf any) error {
-	err := websocket.Message.Receive(c.WebsocketConn, buf)
+func (c *Context) ReceiveString() (string, error) {
+	var buf string
+	err := websocket.Message.Receive(c.WebsocketConn, &buf)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return buf, nil
+}
+
+func (c *Context) Receive() ([]byte, error) {
+	var buf []byte
+	err := websocket.Message.Receive(c.WebsocketConn, &buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
 }
 
 // WS Send
 
-func (c *Context) SendJson(obj any) error {
+func (c *Context) SendJSON(obj any) error {
 	marshal, err := json.Marshal(obj)
 	if err != nil {
 		return err
@@ -230,7 +286,7 @@ func (c *Context) SendJson(obj any) error {
 	return c.Send(marshal)
 }
 
-func (c *Context) SendYaml(obj any) error {
+func (c *Context) SendYAML(obj any) error {
 	marshal, err := yaml.Marshal(obj)
 	if err != nil {
 		return err
@@ -238,7 +294,7 @@ func (c *Context) SendYaml(obj any) error {
 	return c.Send(marshal)
 }
 
-func (c *Context) SendXml(obj any) error {
+func (c *Context) SendXML(obj any) error {
 	marshal, err := xml.Marshal(obj)
 	if err != nil {
 		return err

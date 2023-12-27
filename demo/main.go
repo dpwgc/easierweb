@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -19,7 +18,7 @@ func main() {
 	router.SetContextPath("/test")
 
 	// 添加中间件
-	router.AddMiddleware(DemoMiddleware)
+	router.Use(DemoMiddleware)
 
 	// 常规服务（GET接口，POST接口，Websocket连接处理器，表单文件上传接口，文件下载接口）
 	router.GET("/demoGet/:id", DemoGet)
@@ -70,7 +69,7 @@ func DemoGet(ctx *easierweb.Context) {
 	fmt.Println("name:", ctx.Query["name"])
 
 	// 返回
-	ctx.WriteJson(http.StatusOK, DemoResultDTO{
+	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "GET Request",
 	})
@@ -88,7 +87,7 @@ func DemoPost(ctx *easierweb.Context) {
 
 	// 序列化请求体
 	command := DemoCommand{}
-	err := ctx.BindJson(&command)
+	err := ctx.BindJSON(&command)
 	if err != nil {
 		panic(err)
 	}
@@ -96,7 +95,7 @@ func DemoPost(ctx *easierweb.Context) {
 	fmt.Println("body -> id:", command.Id, ", name:", command.Name)
 
 	// 返回
-	ctx.WriteJson(http.StatusOK, DemoResultDTO{
+	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "POST Request",
 	})
@@ -111,10 +110,10 @@ func DemoWS(ctx *easierweb.Context) {
 
 	// 处理WebSocket连接
 	for {
-		// 读取消息
-		var msg string
-		// var msg []byte
-		err := ctx.Receive(&msg)
+		// 读取字符串消息
+		msg, err := ctx.ReceiveString()
+		// 读取字节消息
+		// msg, err := ctx.Receive()
 		if err != nil {
 			panic(err)
 		}
@@ -122,7 +121,7 @@ func DemoWS(ctx *easierweb.Context) {
 		fmt.Println("read ws msg:", msg)
 
 		// 发送消息
-		err = ctx.SendJson(DemoResultDTO{
+		err = ctx.SendJSON(DemoResultDTO{
 			Msg:  "hello world",
 			Data: "Websocket Connect",
 		})
@@ -161,7 +160,7 @@ func DemoUpload(ctx *easierweb.Context) {
 	fmt.Println("file:", file)
 
 	// 返回
-	ctx.WriteJson(http.StatusOK, DemoResultDTO{
+	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "Upload File",
 	})
@@ -171,12 +170,10 @@ func DemoUpload(ctx *easierweb.Context) {
 // http://127.0.0.1:8082/test/demoDownload/README.md
 // 下载当前服务运行目录下的指定文件
 func DemoDownload(ctx *easierweb.Context) {
-	fileBytes, err := os.ReadFile(ctx.Path["fileName"])
-	if err != nil {
-		panic(err)
-	}
-	// 返回（Content-Type不传默认application/octet-stream）
-	ctx.WriteFile("", fileBytes)
+	// 获取本地文件并返回数据（contentType参数不传：默认application/octet-stream，fileName参数不传：下载后文件名默认为时间戳）
+	ctx.WriteLocalFile("", ctx.Path["fileName"], ctx.Path["fileName"])
+	// 直接返回文件字节数据
+	// ctx.WriteFile("", ctx.Path["fileName"], []byte{})
 }
 
 // DemoMiddleware 中间件
