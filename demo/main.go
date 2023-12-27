@@ -129,7 +129,7 @@ func DemoWS(ctx *easierweb.Context) {
 
 		time.Sleep(3 * time.Second)
 
-		// return函数后会自动关闭连接
+		// 函数return后会自动关闭连接
 		fmt.Println("close ws conn:")
 		return
 	}
