@@ -1,4 +1,4 @@
-module easierweb
+module github.com/dpwgc/easierweb
 
 go 1.21.4
 

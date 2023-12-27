@@ -1,8 +1,8 @@
 package main
 
 import (
-	"easierweb"
 	"fmt"
+	"github.com/dpwgc/easierweb"
 	"mime/multipart"
 	"net/http"
 	"time"
