@@ -18,6 +18,8 @@ type Router struct {
 	errorHandle            ErrorHandle
 }
 
+type Method func(ctx *Context)
+
 type ErrorHandle func(ctx *Context, err any)
 
 func New() *Router {
@@ -151,6 +153,7 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		Path:           make(map[string]string),
 		Query:          make(map[string]string),
 		Form:           make(map[string]string),
+		CustomCache:    make(map[string]any),
 		Request:        req,
 		ResponseWriter: res,
 		WebsocketConn:  ws,

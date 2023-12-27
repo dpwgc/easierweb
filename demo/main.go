@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// 路由示例
+// 示例程序
 func main() {
 
 	// 新建路由
@@ -35,8 +35,7 @@ func main() {
 		errMsg := fmt.Sprintf("%s", err)
 		fmt.Println("err msg:", errMsg)
 		// 返回code=500加异常信息
-		ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
-		_, _ = ctx.ResponseWriter.Write([]byte(errMsg))
+		ctx.WriteString(http.StatusInternalServerError, errMsg)
 	})
 
 	// 启动路由
@@ -56,17 +55,23 @@ func main() {
 // http://127.0.0.1:8082/test/demoGet/123?type=1&price=10.24&name=dpwgc
 func DemoGet(ctx *easierweb.Context) {
 
+	// 上下文缓存数据读取
+	cache := ctx.CustomCache.Get("test_cache1")
+	if cache != nil {
+		fmt.Println("context cache:", cache.(string))
+	}
+
 	// 获取URI参数
-	fmt.Println("id:", ctx.Path.Int64("id"))
+	fmt.Println("id:", ctx.Path.GetInt64("id"))
 
 	// 获取Query参数列表
 	fmt.Println("query keys:", ctx.Query.Keys())
 	fmt.Println("query values:", ctx.Query.Values())
 
 	// 获取Query参数
-	fmt.Println("type:", ctx.Query.Int("type"))
-	fmt.Println("price:", ctx.Query.Float64("price"))
-	fmt.Println("name:", ctx.Query["name"])
+	fmt.Println("type:", ctx.Query.GetInt("type"))
+	fmt.Println("price:", ctx.Query.GetFloat64("price"))
+	fmt.Println("name:", ctx.Query.Get("name"))
 
 	// 返回
 	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
@@ -106,7 +111,7 @@ func DemoPost(ctx *easierweb.Context) {
 func DemoWS(ctx *easierweb.Context) {
 
 	// 获取URI参数
-	fmt.Println("id:", ctx.Path.Int64("id"))
+	fmt.Println("id:", ctx.Path.GetInt64("id"))
 
 	// 处理WebSocket连接
 	for {
@@ -170,14 +175,20 @@ func DemoUpload(ctx *easierweb.Context) {
 // http://127.0.0.1:8082/test/demoDownload/README.md
 // 下载当前服务运行目录下的指定文件
 func DemoDownload(ctx *easierweb.Context) {
+
 	// 获取本地文件并返回数据（contentType参数不传：默认application/octet-stream，fileName参数不传：下载后文件名默认为时间戳）
-	ctx.WriteLocalFile("", ctx.Path["fileName"], ctx.Path["fileName"])
+	ctx.WriteLocalFile("", ctx.Path.Get("fileName"), ctx.Path.Get("fileName"))
+
 	// 直接返回文件字节数据
-	// ctx.WriteFile("", ctx.Path["fileName"], []byte{})
+	// ctx.WriteFile("", ctx.Path.Get("fileName"), []byte{})
 }
 
 // DemoMiddleware 中间件
 func DemoMiddleware(ctx *easierweb.Context) {
+
+	// 自定义缓存，可跟随Context传递到下层
+	ctx.CustomCache.Set("test_cache1", "aaa")
+	ctx.CustomCache.Set("test_cache2", 222)
 
 	// 处理前-打印URL
 	fmt.Println("\nrequest url:", ctx.Request.URL.String())
@@ -186,7 +197,7 @@ func DemoMiddleware(ctx *easierweb.Context) {
 	ctx.Next()
 
 	// 处理后-打印响应结果
-	fmt.Println("result:", string(ctx.Result))
+	fmt.Println("result:", ctx.Result.String())
 }
 
 // DemoCommand 请求命令
