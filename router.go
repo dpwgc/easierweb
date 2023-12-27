@@ -27,51 +27,57 @@ func NewRouter(contextPath string) *Router {
 
 func (r *Router) GET(path string, method Method) {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
 func (r *Router) HEAD(path string, method Method) {
 	r.router.HEAD(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
 func (r *Router) OPTIONS(path string, method Method) {
 	r.router.OPTIONS(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
 func (r *Router) POST(path string, method Method) {
 	r.router.POST(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
 func (r *Router) PUT(path string, method Method) {
 	r.router.PUT(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
 func (r *Router) PATCH(path string, method Method) {
 	r.router.PATCH(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
 func (r *Router) DELETE(path string, method Method) {
 	r.router.DELETE(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par)
+		r.handle(method, res, req, par, nil)
 	})
 }
 
-func (r *Router) WS(path string) {
+func (r *Router) WS(path string, method Method) {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		websocket.Handler(func(ws *websocket.Conn) {
-			// TODO
-		}).ServeHTTP(res, req)
+		websocket.Server{
+			Handler: func(ws *websocket.Conn) {
+				r.handle(method, res, req, par, ws)
+			},
+			Handshake: func(config *websocket.Config, req *http.Request) error {
+				// 解决跨域
+				return nil
+			},
+		}.ServeHTTP(res, req)
 	})
 }
 
@@ -79,15 +85,11 @@ func (r *Router) StaticFiles(path string, fs http.FileSystem) {
 	r.router.ServeFiles(r.contextPath+path, fs)
 }
 
-// AddMiddleware
-// append the middleware
 func (r *Router) AddMiddleware(middleware Method) *Router {
 	r.middlewares = append(r.middlewares, middleware)
 	return r
 }
 
-// AddMiddlewares
-// append the middleware
 func (r *Router) AddMiddlewares(middlewares ...Method) *Router {
 	r.middlewares = append(r.middlewares, middlewares...)
 	return r
@@ -98,12 +100,12 @@ func (r *Router) SetErrorHandle(errorHandle ErrorHandle) {
 }
 
 func (r *Router) Run(addr string) error {
-	fmt.Println("Run ->", addr)
+	r.consoleStartPrint(addr)
 	return http.ListenAndServe(addr, r.router)
 }
 
 func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig *tls.Config) error {
-	fmt.Println("RunTLS ->", addr)
+	r.consoleStartPrint(addr)
 	server := http.Server{
 		Addr:      addr,
 		Handler:   r.router,
@@ -112,7 +114,7 @@ func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig 
 	return server.ListenAndServeTLS(certFile, keyFile)
 }
 
-func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
 
 	ctx := Context{
 		index:          0,
@@ -123,13 +125,14 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		Form:           make(map[string]string),
 		Request:        req,
 		ResponseWriter: res,
+		WebsocketConn:  ws,
 		Code:           -1,
 		Result:         nil,
 	}
 
 	defer func() {
 		err := recover()
-		if err != nil {
+		if err != nil && r.errorHandle != nil {
 			r.errorHandle(&ctx, err)
 		}
 	}()
@@ -171,4 +174,8 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 	} else {
 		method(&ctx)
 	}
+}
+
+func (r *Router) consoleStartPrint(addr string) {
+	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf("[easierweb] running on address: <%s> , context-path: <%s>", addr, r.contextPath))
 }

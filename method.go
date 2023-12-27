@@ -3,6 +3,7 @@ package easierweb
 import (
 	"encoding/json"
 	"encoding/xml"
+	"golang.org/x/net/websocket"
 	"gopkg.in/yaml.v3"
 	"mime/multipart"
 	"net/http"
@@ -92,6 +93,7 @@ type Context struct {
 	CustomCache    any
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
+	WebsocketConn  *websocket.Conn
 	index          int
 	methods        []Method
 }
@@ -116,6 +118,8 @@ func (c *Context) GetFile(key string) (multipart.File, error) {
 	return file, nil
 }
 
+// POST Body
+
 func (c *Context) BindJson(obj any) error {
 	return json.Unmarshal(c.Body, obj)
 }
@@ -127,6 +131,81 @@ func (c *Context) BindYaml(obj any) error {
 func (c *Context) BindXml(obj any) error {
 	return xml.Unmarshal(c.Body, obj)
 }
+
+// WS Receive
+
+func (c *Context) ReceiveJson(obj any) error {
+	return websocket.JSON.Receive(c.WebsocketConn, obj)
+}
+
+func (c *Context) ReceiveYaml(obj any) error {
+	var buf string
+	err := websocket.Message.Receive(c.WebsocketConn, &buf)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal([]byte(buf), obj)
+}
+
+func (c *Context) ReceiveXml(obj any) error {
+	var buf string
+	err := websocket.Message.Receive(c.WebsocketConn, &buf)
+	if err != nil {
+		return err
+	}
+	return xml.Unmarshal([]byte(buf), obj)
+}
+
+func (c *Context) Receive(buf any) error {
+	err := websocket.Message.Receive(c.WebsocketConn, buf)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// WS Send
+
+func (c *Context) SendJson(obj any) error {
+	marshal, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return c.Send(marshal)
+}
+
+func (c *Context) SendYaml(obj any) error {
+	marshal, err := yaml.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return c.Send(marshal)
+}
+
+func (c *Context) SendXml(obj any) error {
+	marshal, err := xml.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return c.Send(marshal)
+}
+
+func (c *Context) Send(msg []byte) error {
+	_, err := c.WebsocketConn.Write(msg)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Context) Close() {
+	err := c.WebsocketConn.Close()
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Result Write
 
 func (c *Context) WriteJson(code int, obj any) {
 	marshal, err := json.Marshal(obj)

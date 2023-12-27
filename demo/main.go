@@ -3,7 +3,6 @@ package main
 import (
 	"easierweb"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
 )
@@ -17,16 +16,18 @@ func main() {
 	// 添加中间件
 	router.AddMiddleware(DemoMiddleware)
 
-	// 添加处理方法
+	// 添加处理方法（GET接口，POST接口，Websocket处理器）
 	router.GET("/demoGet/:id", DemoGet)
 	router.POST("/demoPost", DemoPost)
-	router.GET("/demoWS/:id", DemoWS)
+	router.WS("/demoWS/:id", DemoWS)
 
 	// 设置错误处理器
 	router.SetErrorHandle(func(ctx *easierweb.Context, err any) {
+		errMsg := fmt.Sprintf("%s", err)
+		fmt.Println("err msg:", errMsg)
 		// 返回code=500加异常信息
 		ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
-		_, _ = ctx.ResponseWriter.Write([]byte(fmt.Sprintf("%s", err)))
+		_, _ = ctx.ResponseWriter.Write([]byte(errMsg))
 	})
 
 	// 启动路由
@@ -98,32 +99,24 @@ func DemoWS(ctx *easierweb.Context) {
 	// 获取URI参数
 	fmt.Println("id:", ctx.Path.Int64("id"))
 
-	// 将HTTP升级为WebSocket
-	upGrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-	conn, err := upGrader.Upgrade(ctx.ResponseWriter, ctx.Request, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	// 处理WebSocket连接
 	go func() {
+		// 处理WebSocket连接
 		for {
 			// 读取消息
-			messageType, p, err := conn.ReadMessage()
+			var msg string
+			// var msg []byte
+			err := ctx.Receive(&msg)
 			if err != nil {
 				panic(err)
 			}
 
-			fmt.Println("read ws msg:", string(p))
+			fmt.Println("read ws msg:", msg)
 
 			// 发送消息
-			err = conn.WriteMessage(messageType, []byte("Hello"))
+			err = ctx.SendJson(ResultDTO{
+				Msg:  "hello world",
+				Data: "Websocket Connect",
+			})
 			if err != nil {
 				panic(err)
 			}
@@ -132,7 +125,7 @@ func DemoWS(ctx *easierweb.Context) {
 
 			// 关闭连接
 			fmt.Println("close ws conn:")
-			_ = conn.Close()
+			_ = ctx.WebsocketConn.Close()
 			return
 		}
 	}()
@@ -141,12 +134,14 @@ func DemoWS(ctx *easierweb.Context) {
 // DemoMiddleware 中间件
 func DemoMiddleware(ctx *easierweb.Context) {
 
+	// 处理前-打印请求参数
 	fmt.Println("request url:", ctx.Request.URL)
 	fmt.Println("remote addr:", ctx.Request.RemoteAddr)
 
 	// 跳到下一个方法
 	ctx.Next()
 
+	// 处理前-打印响应结果
 	fmt.Println("result:", string(ctx.Result))
 }
 
