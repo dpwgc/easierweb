@@ -175,7 +175,7 @@ func DemoDownload(ctx *easierweb.Context) {
 	if err != nil {
 		panic(err)
 	}
-	// 返回
+	// 返回（Content-Type不传默认application/octet-stream）
 	ctx.WriteFile("", fileBytes)
 }
 
