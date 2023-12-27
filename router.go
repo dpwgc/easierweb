@@ -10,11 +10,6 @@ import (
 	"strings"
 )
 
-type RouterOptions struct {
-	ContextPath            string
-	MultipartFormMaxMemory int64
-}
-
 type Router struct {
 	contextPath            string
 	multipartFormMaxMemory int64
@@ -25,65 +20,84 @@ type Router struct {
 
 type ErrorHandle func(ctx *Context, err any)
 
-func NewRouter(options RouterOptions) *Router {
-	var multipartFormMaxMemory int64 = 4096
-	if options.MultipartFormMaxMemory > 0 {
-		multipartFormMaxMemory = options.MultipartFormMaxMemory
-	}
+func New() *Router {
 	return &Router{
-		contextPath:            options.ContextPath,
-		multipartFormMaxMemory: multipartFormMaxMemory,
+		contextPath:            "",
+		multipartFormMaxMemory: 1024,
 		router:                 httprouter.New(),
 	}
 }
 
-func (r *Router) GET(path string, method Method) {
+func (r *Router) SetErrorHandle(errorHandle ErrorHandle) *Router {
+	r.errorHandle = errorHandle
+	return r
+}
+
+func (r *Router) SetContextPath(contextPath string) *Router {
+	r.contextPath = contextPath
+	return r
+}
+
+func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
+	r.multipartFormMaxMemory = maxMemory
+	return r
+}
+
+func (r *Router) GET(path string, method Method) *Router {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) HEAD(path string, method Method) {
+func (r *Router) HEAD(path string, method Method) *Router {
 	r.router.HEAD(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) OPTIONS(path string, method Method) {
+func (r *Router) OPTIONS(path string, method Method) *Router {
 	r.router.OPTIONS(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) POST(path string, method Method) {
+func (r *Router) POST(path string, method Method) *Router {
 	r.router.POST(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) PUT(path string, method Method) {
+func (r *Router) PUT(path string, method Method) *Router {
 	r.router.PUT(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) PATCH(path string, method Method) {
+func (r *Router) PATCH(path string, method Method) *Router {
 	r.router.PATCH(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) DELETE(path string, method Method) {
+func (r *Router) DELETE(path string, method Method) *Router {
 	r.router.DELETE(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(method, res, req, par, nil)
 	})
+	return r
 }
 
-func (r *Router) Handle(method, path string, handle httprouter.Handle) {
+func (r *Router) Handle(method, path string, handle httprouter.Handle) *Router {
 	r.router.Handle(method, r.contextPath+path, handle)
+	return r
 }
 
-func (r *Router) WS(path string, method Method) {
+func (r *Router) WS(path string, method Method) *Router {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
 			Handler: func(ws *websocket.Conn) {
@@ -95,10 +109,17 @@ func (r *Router) WS(path string, method Method) {
 			},
 		}.ServeHTTP(res, req)
 	})
+	return r
 }
 
-func (r *Router) StaticFS(path string, fs http.FileSystem) {
+func (r *Router) Static(path, dir string) *Router {
+	r.StaticFS(path, http.Dir(dir))
+	return r
+}
+
+func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
 	r.router.ServeFiles(r.contextPath+path, fs)
+	return r
 }
 
 func (r *Router) AddMiddleware(middleware Method) *Router {
@@ -109,10 +130,6 @@ func (r *Router) AddMiddleware(middleware Method) *Router {
 func (r *Router) AddMiddlewares(middlewares ...Method) *Router {
 	r.middlewares = append(r.middlewares, middlewares...)
 	return r
-}
-
-func (r *Router) SetErrorHandle(errorHandle ErrorHandle) {
-	r.errorHandle = errorHandle
 }
 
 func (r *Router) Run(addr string) error {
@@ -207,5 +224,6 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 }
 
 func (r *Router) consoleStartPrint(addr string) {
-	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf("<easierweb> running on address: [%s] , context-path: [%s]", addr, r.contextPath))
+	fmt.Println("  ______          _        __          __  _     \n |  ____|        (_)       \\ \\        / / | |    \n | |__   __ _ ___ _  ___ _ _\\ \\  /\\  / /__| |__  \n |  __| / _` / __| |/ _ \\ '__\\ \\/  \\/ / _ \\ '_ \\ \n | |___| (_| \\__ \\ |  __/ |   \\  /\\  /  __/ |_) |\n |______\\__,_|___/_|\\___|_|    \\/  \\/ \\___|_.__/")
+	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf(" >>> http server started on [%s] ", addr))
 }

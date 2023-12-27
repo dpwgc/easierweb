@@ -12,9 +12,10 @@ import (
 func main() {
 
 	// 新建路由
-	router := easierweb.NewRouter(easierweb.RouterOptions{
-		ContextPath: "/test",
-	})
+	router := easierweb.New()
+
+	// 设置根路径 /test
+	router.SetContextPath("/test")
 
 	// 添加中间件
 	router.AddMiddleware(DemoMiddleware)
@@ -25,8 +26,8 @@ func main() {
 	router.WS("/demoWS/:id", DemoWS)
 	router.POST("/demoUpload", DemoUpload)
 
-	// 静态文件服务 http://127.0.0.1:8082/test/demoStaticFS
-	router.StaticFS("/demoStaticFS/*filepath", http.Dir("demo"))
+	// 静态文件服务（访问demo目录） http://127.0.0.1:8082/test/demoStatic
+	router.Static("/demoStatic/*filepath", "demo")
 
 	// 设置错误处理器，捕获panic出来的异常
 	router.SetErrorHandle(func(ctx *easierweb.Context, err any) {
