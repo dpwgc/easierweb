@@ -174,7 +174,7 @@ func DemoMiddleware(ctx *easierweb.Context) {
 	// 跳到下一个方法
 	ctx.Next()
 
-	// 处理前-打印响应结果
+	// 处理后-打印响应结果
 	fmt.Println("result:", string(ctx.Result))
 }
 
