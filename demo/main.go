@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -20,11 +21,12 @@ func main() {
 	// 添加中间件
 	router.AddMiddleware(DemoMiddleware)
 
-	// 常规服务（GET接口，POST接口，Websocket连接处理器，表单文件上传接口）
+	// 常规服务（GET接口，POST接口，Websocket连接处理器，表单文件上传接口，文件下载接口）
 	router.GET("/demoGet/:id", DemoGet)
 	router.POST("/demoPost", DemoPost)
 	router.WS("/demoWS/:id", DemoWS)
 	router.POST("/demoUpload", DemoUpload)
+	router.GET("/demoDownload/:fileName", DemoDownload)
 
 	// 静态文件服务（访问demo目录） http://127.0.0.1:8082/test/demoStatic
 	router.Static("/demoStatic/*filepath", "demo")
@@ -163,6 +165,18 @@ func DemoUpload(ctx *easierweb.Context) {
 		Msg:  "hello world",
 		Data: "Upload File",
 	})
+}
+
+// DemoDownload 文件下载接口
+// http://127.0.0.1:8082/test/demoDownload/README.md
+// 下载当前服务运行目录下的指定文件
+func DemoDownload(ctx *easierweb.Context) {
+	fileBytes, err := os.ReadFile(ctx.Path["fileName"])
+	if err != nil {
+		panic(err)
+	}
+	// 返回
+	ctx.WriteFile("", fileBytes)
 }
 
 // DemoMiddleware 中间件
