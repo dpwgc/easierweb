@@ -31,8 +31,8 @@ go get github.com/dpwgc/easierweb
 package main
 
 import (
-   "easierweb"
    "fmt"
+   "github.com/dpwgc/easierweb"
    "log"
    "net/http"
    "time"
