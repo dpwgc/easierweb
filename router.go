@@ -2,9 +2,9 @@ package easierweb
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"golang.org/x/net/websocket"
 	"io"
 	"net/http"
 )
@@ -13,7 +13,10 @@ type Router struct {
 	contextPath string
 	router      *httprouter.Router
 	middlewares []Method
+	errorHandle ErrorHandle
 }
+
+type ErrorHandle func(ctx *Context, err any)
 
 func NewRouter(contextPath string) *Router {
 	return &Router{
@@ -64,8 +67,16 @@ func (r *Router) DELETE(path string, method Method) {
 	})
 }
 
-func (r *Router) File(path string, root http.FileSystem) {
-	r.router.ServeFiles(r.contextPath+path, root)
+func (r *Router) WS(path string) {
+	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		websocket.Handler(func(ws *websocket.Conn) {
+			// TODO
+		}).ServeHTTP(res, req)
+	})
+}
+
+func (r *Router) StaticFiles(path string, fs http.FileSystem) {
+	r.router.ServeFiles(r.contextPath+path, fs)
 }
 
 // AddMiddleware
@@ -80,6 +91,10 @@ func (r *Router) AddMiddleware(middleware Method) *Router {
 func (r *Router) AddMiddlewares(middlewares ...Method) *Router {
 	r.middlewares = append(r.middlewares, middlewares...)
 	return r
+}
+
+func (r *Router) SetErrorHandle(errorHandle ErrorHandle) {
+	r.errorHandle = errorHandle
 }
 
 func (r *Router) Run(addr string) error {
@@ -99,17 +114,6 @@ func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig 
 
 func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 
-	defer func() {
-		err := recover()
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			errRes := make(map[string]string, 1)
-			errRes["msg"] = fmt.Sprintf("%s", err)
-			marshal, _ := json.Marshal(errRes)
-			_, _ = res.Write(marshal)
-		}
-	}()
-
 	ctx := Context{
 		index:          0,
 		methods:        append([]Method(nil), r.middlewares...),
@@ -122,6 +126,13 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		Code:           -1,
 		Result:         nil,
 	}
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			r.errorHandle(&ctx, err)
+		}
+	}()
 
 	bodyBytes, err := io.ReadAll(req.Body)
 	if err == nil && len(bodyBytes) > 0 {
@@ -159,10 +170,5 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		}
 	} else {
 		method(&ctx)
-	}
-	// code有效时，响应客户端（排除websocket连接）
-	if ctx.Code > 0 {
-		res.WriteHeader(ctx.Code)
-		_, _ = res.Write(ctx.Result)
 	}
 }

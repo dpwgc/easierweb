@@ -18,12 +18,16 @@ func main() {
 	router.AddMiddleware(DemoMiddleware)
 
 	// 添加处理方法
-	// GET接口
 	router.GET("/demoGet/:id", DemoGet)
-	// POST接口
 	router.POST("/demoPost", DemoPost)
-	// Websocket连接
 	router.GET("/demoWS/:id", DemoWS)
+
+	// 设置错误处理器
+	router.SetErrorHandle(func(ctx *easierweb.Context, err any) {
+		// 返回code=500加异常信息
+		ctx.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		_, _ = ctx.ResponseWriter.Write([]byte(fmt.Sprintf("%s", err)))
+	})
 
 	// 启动路由
 	err := router.Run(":8082")

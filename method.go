@@ -155,4 +155,9 @@ func (c *Context) WriteXml(code int, obj any) {
 func (c *Context) Write(code int, data []byte) {
 	c.Code = code
 	c.Result = data
+	c.ResponseWriter.WriteHeader(code)
+	_, err := c.ResponseWriter.Write(data)
+	if err != nil {
+		panic(err)
+	}
 }
