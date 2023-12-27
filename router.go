@@ -7,21 +7,33 @@ import (
 	"golang.org/x/net/websocket"
 	"io"
 	"net/http"
+	"strings"
 )
 
+type RouterOptions struct {
+	ContextPath            string
+	MultipartFormMaxMemory int64
+}
+
 type Router struct {
-	contextPath string
-	router      *httprouter.Router
-	middlewares []Method
-	errorHandle ErrorHandle
+	contextPath            string
+	multipartFormMaxMemory int64
+	router                 *httprouter.Router
+	middlewares            []Method
+	errorHandle            ErrorHandle
 }
 
 type ErrorHandle func(ctx *Context, err any)
 
-func NewRouter(contextPath string) *Router {
+func NewRouter(options RouterOptions) *Router {
+	var multipartFormMaxMemory int64 = 4096
+	if options.MultipartFormMaxMemory > 0 {
+		multipartFormMaxMemory = options.MultipartFormMaxMemory
+	}
 	return &Router{
-		contextPath: contextPath,
-		router:      httprouter.New(),
+		contextPath:            options.ContextPath,
+		multipartFormMaxMemory: multipartFormMaxMemory,
+		router:                 httprouter.New(),
 	}
 }
 
@@ -67,6 +79,10 @@ func (r *Router) DELETE(path string, method Method) {
 	})
 }
 
+func (r *Router) Handle(method, path string, handle httprouter.Handle) {
+	r.router.Handle(method, r.contextPath+path, handle)
+}
+
 func (r *Router) WS(path string, method Method) {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
@@ -81,7 +97,7 @@ func (r *Router) WS(path string, method Method) {
 	})
 }
 
-func (r *Router) StaticFiles(path string, fs http.FileSystem) {
+func (r *Router) StaticFS(path string, fs http.FileSystem) {
 	r.router.ServeFiles(r.contextPath+path, fs)
 }
 
@@ -137,11 +153,18 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		}
 	}()
 
-	bodyBytes, err := io.ReadAll(req.Body)
-	if err == nil && len(bodyBytes) > 0 {
-		ctx.Body = bodyBytes
+	if !strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") &&
+		!strings.Contains(strings.ToLower(req.Header.Get("content-type")), "multipart/form-data") {
+		bodyBytes, err := io.ReadAll(req.Body)
+		if err == nil {
+			ctx.Body = bodyBytes
+		}
+	} else {
+		err := req.ParseMultipartForm(r.multipartFormMaxMemory)
+		if err != nil {
+			panic(err)
+		}
 	}
-	_ = req.Body.Close()
 
 	for k, v := range req.Header {
 		if len(v) > 0 {
@@ -173,6 +196,13 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		}
 	} else {
 		method(&ctx)
+	}
+	// 如果websocket连接不为空，关闭它
+	if ws != nil {
+		err := ws.Close()
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

@@ -169,13 +169,13 @@ func (c *Context) WriteXml(code int, obj any) {
 	c.Write(code, marshal)
 }
 
-func (c *Context) WriteFile(fileBytes []byte) {
-	c.ResponseWriter.WriteHeader(http.StatusOK)
-	c.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
-	_, err := c.ResponseWriter.Write(fileBytes)
-	if err != nil {
-		panic(err)
+func (c *Context) WriteFile(contentType string, fileBytes []byte) {
+	if len(contentType) == 0 {
+		c.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
+	} else {
+		c.ResponseWriter.Header().Set("Content-Type", contentType)
 	}
+	c.Write(http.StatusOK, fileBytes)
 }
 
 func (c *Context) Write(code int, data []byte) {
@@ -252,11 +252,4 @@ func (c *Context) Send(msg []byte) error {
 		return err
 	}
 	return nil
-}
-
-func (c *Context) Close() {
-	err := c.WebsocketConn.Close()
-	if err != nil {
-		panic(err)
-	}
 }

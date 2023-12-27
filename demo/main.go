@@ -12,18 +12,23 @@ import (
 func main() {
 
 	// 新建路由
-	router := easierweb.NewRouter("/test")
+	router := easierweb.NewRouter(easierweb.RouterOptions{
+		ContextPath: "/test",
+	})
 
 	// 添加中间件
 	router.AddMiddleware(DemoMiddleware)
 
-	// 添加处理方法（GET接口，POST接口，Websocket处理器）
+	// 常规服务（GET接口，POST接口，Websocket连接处理器，表单文件上传接口）
 	router.GET("/demoGet/:id", DemoGet)
 	router.POST("/demoPost", DemoPost)
 	router.WS("/demoWS/:id", DemoWS)
 	router.POST("/demoUpload", DemoUpload)
 
-	// 设置错误处理器
+	// 静态文件服务 http://127.0.0.1:8082/test/demoStaticFS
+	router.StaticFS("/demoStaticFS/*filepath", http.Dir("demo"))
+
+	// 设置错误处理器，捕获panic出来的异常
 	router.SetErrorHandle(func(ctx *easierweb.Context, err any) {
 		errMsg := fmt.Sprintf("%s", err)
 		fmt.Println("err msg:", errMsg)
@@ -62,7 +67,7 @@ func DemoGet(ctx *easierweb.Context) {
 	fmt.Println("name:", ctx.Query["name"])
 
 	// 返回
-	ctx.WriteJson(http.StatusOK, ResultDTO{
+	ctx.WriteJson(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "GET Request",
 	})
@@ -79,16 +84,16 @@ func DemoGet(ctx *easierweb.Context) {
 func DemoPost(ctx *easierweb.Context) {
 
 	// 序列化请求体
-	command := Command{}
+	command := DemoCommand{}
 	err := ctx.BindJson(&command)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("id:", command.Id, ", name:", command.Name)
+	fmt.Println("body -> id:", command.Id, ", name:", command.Name)
 
 	// 返回
-	ctx.WriteJson(http.StatusOK, ResultDTO{
+	ctx.WriteJson(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "POST Request",
 	})
@@ -114,7 +119,7 @@ func DemoWS(ctx *easierweb.Context) {
 		fmt.Println("read ws msg:", msg)
 
 		// 发送消息
-		err = ctx.SendJson(ResultDTO{
+		err = ctx.SendJson(DemoResultDTO{
 			Msg:  "hello world",
 			Data: "Websocket Connect",
 		})
@@ -124,21 +129,21 @@ func DemoWS(ctx *easierweb.Context) {
 
 		time.Sleep(3 * time.Second)
 
-		// 关闭连接
+		// return函数后会自动关闭连接
 		fmt.Println("close ws conn:")
-		ctx.Close()
 		return
 	}
 }
 
 // DemoUpload 文件上传接口
 // http://127.0.0.1:8082/test/demoUpload
-// Form key -> 'file'
+// Form表单参数
+// 'file' -> '文件'
 func DemoUpload(ctx *easierweb.Context) {
 
-	fmt.Println("files:", ctx.FileKeys())
+	fmt.Println("file keys:", ctx.FileKeys())
 
-	// 获取文件
+	// 获取表单文件
 	file, err := ctx.GetFile("file")
 	if err != nil {
 		panic(err)
@@ -150,15 +155,20 @@ func DemoUpload(ctx *easierweb.Context) {
 		}
 	}(file)
 
-	fmt.Println(file)
+	fmt.Println("file:", file)
+
+	// 返回
+	ctx.WriteJson(http.StatusOK, DemoResultDTO{
+		Msg:  "hello world",
+		Data: "Upload File",
+	})
 }
 
 // DemoMiddleware 中间件
 func DemoMiddleware(ctx *easierweb.Context) {
 
-	// 处理前-打印请求参数
-	fmt.Println("request url:", ctx.Request.URL)
-	fmt.Println("remote addr:", ctx.Request.RemoteAddr)
+	// 处理前-打印URL
+	fmt.Println("\nrequest url:", ctx.Request.URL.String())
 
 	// 跳到下一个方法
 	ctx.Next()
@@ -167,14 +177,14 @@ func DemoMiddleware(ctx *easierweb.Context) {
 	fmt.Println("result:", string(ctx.Result))
 }
 
-// Command 请求命令
-type Command struct {
+// DemoCommand 请求命令
+type DemoCommand struct {
 	Name string `json:"name"`
 	Id   int64  `json:"id"`
 }
 
-// ResultDTO 响应DTO
-type ResultDTO struct {
+// DemoResultDTO 响应DTO
+type DemoResultDTO struct {
 	Msg  string `json:"msg"`
 	Data string `json:"data"`
 }
