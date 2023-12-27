@@ -3,6 +3,7 @@ package main
 import (
 	"easierweb"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"time"
 )
@@ -20,6 +21,7 @@ func main() {
 	router.GET("/demoGet/:id", DemoGet)
 	router.POST("/demoPost", DemoPost)
 	router.WS("/demoWS/:id", DemoWS)
+	router.POST("/demoUpload", DemoUpload)
 
 	// 设置错误处理器
 	router.SetErrorHandle(func(ctx *easierweb.Context, err any) {
@@ -99,36 +101,56 @@ func DemoWS(ctx *easierweb.Context) {
 	// 获取URI参数
 	fmt.Println("id:", ctx.Path.Int64("id"))
 
-	go func() {
-		// 处理WebSocket连接
-		for {
-			// 读取消息
-			var msg string
-			// var msg []byte
-			err := ctx.Receive(&msg)
-			if err != nil {
-				panic(err)
-			}
-
-			fmt.Println("read ws msg:", msg)
-
-			// 发送消息
-			err = ctx.SendJson(ResultDTO{
-				Msg:  "hello world",
-				Data: "Websocket Connect",
-			})
-			if err != nil {
-				panic(err)
-			}
-
-			time.Sleep(3 * time.Second)
-
-			// 关闭连接
-			fmt.Println("close ws conn:")
-			_ = ctx.WebsocketConn.Close()
-			return
+	// 处理WebSocket连接
+	for {
+		// 读取消息
+		var msg string
+		// var msg []byte
+		err := ctx.Receive(&msg)
+		if err != nil {
+			panic(err)
 		}
-	}()
+
+		fmt.Println("read ws msg:", msg)
+
+		// 发送消息
+		err = ctx.SendJson(ResultDTO{
+			Msg:  "hello world",
+			Data: "Websocket Connect",
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		time.Sleep(3 * time.Second)
+
+		// 关闭连接
+		fmt.Println("close ws conn:")
+		ctx.Close()
+		return
+	}
+}
+
+// DemoUpload 文件上传接口
+// http://127.0.0.1:8082/test/demoUpload
+// Form key -> 'file'
+func DemoUpload(ctx *easierweb.Context) {
+
+	fmt.Println("files:", ctx.FileKeys())
+
+	// 获取文件
+	file, err := ctx.GetFile("file")
+	if err != nil {
+		panic(err)
+	}
+	defer func(file multipart.File) {
+		err = file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
+
+	fmt.Println(file)
 }
 
 // DemoMiddleware 中间件

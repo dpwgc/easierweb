@@ -110,6 +110,17 @@ func (c *Context) Abort() {
 	c.index = len(c.methods) + 1
 }
 
+// POST Form File
+
+func (c *Context) FileKeys() []string {
+	files := c.Request.MultipartForm.File
+	var ks = make([]string, 0, len(files))
+	for k := range files {
+		ks = append(ks, k)
+	}
+	return ks
+}
+
 func (c *Context) GetFile(key string) (multipart.File, error) {
 	file, _, err := c.Request.FormFile(key)
 	if err != nil {
@@ -118,7 +129,7 @@ func (c *Context) GetFile(key string) (multipart.File, error) {
 	return file, nil
 }
 
-// POST Body
+// POST Body Bind
 
 func (c *Context) BindJson(obj any) error {
 	return json.Unmarshal(c.Body, obj)
@@ -130,6 +141,51 @@ func (c *Context) BindYaml(obj any) error {
 
 func (c *Context) BindXml(obj any) error {
 	return xml.Unmarshal(c.Body, obj)
+}
+
+// Result Write
+
+func (c *Context) WriteJson(code int, obj any) {
+	marshal, err := json.Marshal(obj)
+	if err != nil {
+		panic(err)
+	}
+	c.Write(code, marshal)
+}
+
+func (c *Context) WriteYaml(code int, obj any) {
+	marshal, err := yaml.Marshal(obj)
+	if err != nil {
+		panic(err)
+	}
+	c.Write(code, marshal)
+}
+
+func (c *Context) WriteXml(code int, obj any) {
+	marshal, err := xml.Marshal(obj)
+	if err != nil {
+		panic(err)
+	}
+	c.Write(code, marshal)
+}
+
+func (c *Context) WriteFile(fileBytes []byte) {
+	c.ResponseWriter.WriteHeader(http.StatusOK)
+	c.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
+	_, err := c.ResponseWriter.Write(fileBytes)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (c *Context) Write(code int, data []byte) {
+	c.Code = code
+	c.Result = data
+	c.ResponseWriter.WriteHeader(code)
+	_, err := c.ResponseWriter.Write(data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // WS Receive
@@ -200,42 +256,6 @@ func (c *Context) Send(msg []byte) error {
 
 func (c *Context) Close() {
 	err := c.WebsocketConn.Close()
-	if err != nil {
-		panic(err)
-	}
-}
-
-// Result Write
-
-func (c *Context) WriteJson(code int, obj any) {
-	marshal, err := json.Marshal(obj)
-	if err != nil {
-		panic(err)
-	}
-	c.Write(code, marshal)
-}
-
-func (c *Context) WriteYaml(code int, obj any) {
-	marshal, err := yaml.Marshal(obj)
-	if err != nil {
-		panic(err)
-	}
-	c.Write(code, marshal)
-}
-
-func (c *Context) WriteXml(code int, obj any) {
-	marshal, err := xml.Marshal(obj)
-	if err != nil {
-		panic(err)
-	}
-	c.Write(code, marshal)
-}
-
-func (c *Context) Write(code int, data []byte) {
-	c.Code = code
-	c.Result = data
-	c.ResponseWriter.WriteHeader(code)
-	_, err := c.ResponseWriter.Write(data)
 	if err != nil {
 		panic(err)
 	}

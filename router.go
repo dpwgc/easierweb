@@ -159,7 +159,7 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		}
 	}
 
-	for k, v := range req.Form {
+	for k, v := range req.PostForm {
 		if len(v) > 0 {
 			ctx.Form[k] = v[0]
 		}
@@ -177,5 +177,5 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 }
 
 func (r *Router) consoleStartPrint(addr string) {
-	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf("[easierweb] running on address: <%s> , context-path: <%s>", addr, r.contextPath))
+	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf("<easierweb> running on address: [%s] , context-path: [%s]", addr, r.contextPath))
 }
