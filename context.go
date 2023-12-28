@@ -138,13 +138,7 @@ func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
 	c.Write(http.StatusOK, fileBytes)
 }
 
-func (c *Context) WriteHTML(code int, html string) {
-	c.ResponseWriter.Header().Set("Content-Type", "text/html")
-	c.Write(code, []byte(html))
-}
-
 func (c *Context) WriteString(code int, text string) {
-	c.ResponseWriter.Header().Set("Content-Type", "text/plain")
 	c.Write(code, []byte(text))
 }
 
@@ -240,6 +234,10 @@ func (c *Context) SendXML(obj any) error {
 		return err
 	}
 	return c.Send(marshal)
+}
+
+func (c *Context) SendString(text string) error {
+	return c.Send([]byte(text))
 }
 
 func (c *Context) Send(msg []byte) error {

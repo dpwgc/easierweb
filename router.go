@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/websocket"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -27,7 +28,7 @@ type Handle func(ctx *Context)
 
 type EasyHandle func(ctx *Context, reqObj any) (any, error)
 
-type RequestHandle func(ctx *Context, easyHandle any) (any, error)
+type RequestHandle func(ctx *Context, paramValues []reflect.Value) error
 
 type ResponseHandle func(ctx *Context, result any, err error)
 
@@ -61,7 +62,7 @@ func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
 	return r
 }
 
-func (r *Router) SetEasyHandleDefaultPlugins(requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+func (r *Router) SetEasyHandlePlugins(requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
 	r.requestHandle = requestHandle
 	r.responseHandle = responseHandle
 	return r
@@ -100,31 +101,31 @@ func (r *Router) EasyDELETE(path string, easyHandle any) *Router {
 // --
 
 func (r *Router) ReEasyGET(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.GET(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.GET(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 func (r *Router) ReEasyHEAD(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.HEAD(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.HEAD(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 func (r *Router) ReEasyOPTIONS(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.OPTIONS(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.OPTIONS(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 func (r *Router) ReEasyPOST(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.POST(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.POST(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 func (r *Router) ReEasyPUT(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.PUT(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.PUT(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 func (r *Router) ReEasyPATCH(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.PATCH(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.PATCH(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 func (r *Router) ReEasyDELETE(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.DELETE(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+	return r.DELETE(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 // --
@@ -344,17 +345,51 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 	}
 }
 
-func (r *Router) simpleHandle2handle(simpleHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) Handle {
+func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) Handle {
 	return func(ctx *Context) {
 		// 如果为空
 		if requestHandle == nil {
 			panic(errors.New("request handle is empty"))
 		}
-		result, err := requestHandle(ctx, simpleHandle)
 		if responseHandle == nil {
 			panic(errors.New("response handle is empty"))
 		}
-		responseHandle(ctx, result, err)
+		// 反射获取函数类型
+		funcType := reflect.TypeOf(easyHandle)
+
+		// 创建参数值的切片
+		var paramValues []reflect.Value
+
+		// 如果没有第二个参数，就不进行自动绑定了
+		if funcType.NumIn() == 1 {
+			paramValues = make([]reflect.Value, 1)
+			paramValues[0] = reflect.ValueOf(ctx).Elem().Addr()
+		} else if funcType.NumIn() == 2 {
+			paramValues = make([]reflect.Value, 2)
+			paramValues[0] = reflect.ValueOf(ctx).Elem().Addr()
+			paramValues[1] = reflect.New(funcType.In(1)).Elem()
+		} else {
+			panic(errors.New("response handle parameters does not match"))
+		}
+
+		err := requestHandle(ctx, paramValues)
+		if err != nil {
+			responseHandle(ctx, nil, err)
+		}
+
+		// 调用函数
+		returnValues := reflect.ValueOf(easyHandle).Call(paramValues)
+
+		// 处理返回值
+		var resultValue any
+		if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
+			resultValue = returnValues[0].Elem().Interface()
+		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Slice {
+			resultValue = returnValues[0].Interface()
+		}
+		errValue, _ := returnValues[1].Interface().(error)
+
+		responseHandle(ctx, resultValue, errValue)
 	}
 }
 

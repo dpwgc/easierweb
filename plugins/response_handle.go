@@ -47,30 +47,6 @@ func XMLResponseHandle(ctx *easierweb.Context, result any, err error) {
 	ctx.WriteXML(http.StatusOK, result)
 }
 
-func HTMLResponseHandle(ctx *easierweb.Context, result any, err error) {
-	if err != nil {
-		ctx.WriteString(http.StatusBadRequest, err.Error())
-		return
-	}
-	if result == nil {
-		ctx.Write(http.StatusNoContent, nil)
-		return
-	}
-	ctx.WriteHTML(http.StatusOK, result.(string))
-}
-
-func StringResponseHandle(ctx *easierweb.Context, result any, err error) {
-	if err != nil {
-		ctx.WriteString(http.StatusBadRequest, err.Error())
-		return
-	}
-	if result == nil {
-		ctx.Write(http.StatusNoContent, nil)
-		return
-	}
-	ctx.WriteString(http.StatusOK, result.(string))
-}
-
 func BytesResponseHandle(ctx *easierweb.Context, result any, err error) {
 	if err != nil {
 		ctx.Write(http.StatusBadRequest, []byte(err.Error()))

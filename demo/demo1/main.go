@@ -204,6 +204,7 @@ type DemoCommand struct {
 
 // DemoQuery 查询请求
 type DemoQuery struct {
+	// URI Query参数接收，需配置schema标签
 	Type  int     `schema:"type"`
 	Price float64 `schema:"price"`
 	Name  string  `schema:"name"`
