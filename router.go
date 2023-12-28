@@ -22,6 +22,10 @@ type Router struct {
 
 type Handle func(ctx *Context)
 
+type SimpleHandle func(ctx *Context) (any, error)
+
+type ResponseHandle func(ctx *Context, result any, err error)
+
 type ErrorHandle func(ctx *Context, err any)
 
 func New() *Router {
@@ -51,6 +55,38 @@ func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
 	r.multipartFormMaxMemory = maxMemory
 	return r
 }
+
+// --
+
+func (r *Router) SimpleGET(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.GET(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+func (r *Router) SimpleHEAD(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.HEAD(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+func (r *Router) SimpleOPTIONS(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.OPTIONS(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+func (r *Router) SimplePOST(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.POST(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+func (r *Router) SimplePUT(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.PUT(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+func (r *Router) SimplePATCH(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.PATCH(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+func (r *Router) SimpleDELETE(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
+	return r.DELETE(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+}
+
+// --
 
 func (r *Router) GET(path string, handle Handle) *Router {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
@@ -101,11 +137,6 @@ func (r *Router) DELETE(path string, handle Handle) *Router {
 	return r
 }
 
-func (r *Router) CustomHandle(method, path string, handle httprouter.Handle) *Router {
-	r.router.Handle(method, r.contextPath+path, handle)
-	return r
-}
-
 func (r *Router) WS(path string, handle Handle) *Router {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
@@ -135,6 +166,11 @@ func (r *Router) Use(middlewares ...Handle) *Router {
 	return r
 }
 
+func (r *Router) CustomHandle(method, path string, handle httprouter.Handle) *Router {
+	r.router.Handle(method, r.contextPath+path, handle)
+	return r
+}
+
 func (r *Router) Run(addr string) error {
 	r.consoleStartPrint(addr)
 	r.server = http.Server{
@@ -158,7 +194,7 @@ func (r *Router) Close() error {
 	return r.server.Shutdown(context.Background())
 }
 
-func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
+func (r *Router) newContext(res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) (*Context, error) {
 
 	ctx := Context{
 		index:          0,
@@ -175,23 +211,17 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 		Result:         nil,
 	}
 
-	defer func() {
-		err := recover()
-		if err != nil && r.errorHandle != nil {
-			r.errorBottomUp(&ctx, err)
-		}
-	}()
-
 	if !strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") &&
 		!strings.Contains(strings.ToLower(req.Header.Get("content-type")), "multipart/form-data") {
 		bodyBytes, err := io.ReadAll(req.Body)
-		if err == nil {
-			ctx.Body = bodyBytes
+		if err != nil {
+			return nil, err
 		}
+		ctx.Body = bodyBytes
 	} else {
 		err := req.ParseMultipartForm(r.multipartFormMaxMemory)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
@@ -229,21 +259,48 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 		}
 	}
 
+	return &ctx, nil
+}
+
+func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
+
+	ctx, err := r.newContext(res, req, par, nil)
+
+	defer func() {
+		sErr := recover()
+		if sErr != nil && r.errorHandle != nil {
+			r.errorBottomUp(ctx, sErr)
+		}
+	}()
+
+	if err != nil {
+		panic(err)
+	}
+
+	// 中间件
 	if len(r.middlewares) > 0 {
 		ctx.handles = append(ctx.handles, handle)
 		for ctx.index < len(ctx.handles) {
-			ctx.handles[ctx.index](&ctx)
+			ctx.handles[ctx.index](ctx)
 			ctx.index++
 		}
 	} else {
-		handle(&ctx)
+		handle(ctx)
 	}
-	// 如果websocket连接不为空，关闭它
+
+	// 如果ws存在，自动关闭ws连接
 	if ws != nil {
-		err := ws.Close()
+		err = ws.Close()
 		if err != nil {
 			panic(err)
 		}
+	}
+}
+
+func (r *Router) simpleHandle2handle(simpleHandle SimpleHandle, responseHandle ResponseHandle) Handle {
+	return func(ctx *Context) {
+		result, err := simpleHandle(ctx)
+		responseHandle(ctx, result, err)
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
+	"github.com/dpwgc/easierweb/utils"
 	"mime/multipart"
 	"net/http"
 	"time"
@@ -29,6 +30,10 @@ func main() {
 
 	// 静态文件服务（访问demo目录） http://127.0.0.1:8082/test/demoStatic
 	router.Static("/demoStatic/*filepath", "demo")
+
+	// 更简单的接口写法
+	// 接口处理函数直接return结果，响应处理器接收结果并响应客户端
+	router.SimpleGET("/demoSimpleGet/:id", DemoSimpleGet, utils.JSONResponseHandle)
 
 	// 启动路由
 	err := router.Run(":8082")
@@ -173,6 +178,20 @@ func DemoDownload(ctx *easierweb.Context) {
 
 	// 直接返回文件字节数据
 	// ctx.WriteFile("", ctx.Path.Get("fileName"), []byte{})
+}
+
+// DemoSimpleGet GET接口-简易写法
+// http://127.0.0.1:8082/test/demoSimpleGet/123
+func DemoSimpleGet(ctx *easierweb.Context) (any, error) {
+
+	// 获取URI参数
+	fmt.Println("id:", ctx.Path.Int64("id"))
+
+	// 返回
+	return DemoResultDTO{
+		Msg:  "hello world",
+		Data: "GET Request (Simple)",
+	}, nil
 }
 
 // DemoMiddleware 中间件
