@@ -1,4 +1,4 @@
-package utils
+package plugins
 
 import (
 	"github.com/dpwgc/easierweb"
@@ -69,4 +69,16 @@ func StringResponseHandle(ctx *easierweb.Context, result any, err error) {
 		return
 	}
 	ctx.WriteString(http.StatusOK, result.(string))
+}
+
+func BytesResponseHandle(ctx *easierweb.Context, result any, err error) {
+	if err != nil {
+		ctx.Write(http.StatusBadRequest, []byte(err.Error()))
+		return
+	}
+	if result == nil {
+		ctx.Write(http.StatusNoContent, nil)
+		return
+	}
+	ctx.Write(http.StatusOK, result.([]byte))
 }

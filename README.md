@@ -66,4 +66,7 @@ func hello(ctx *easierweb.Context) {
 ### Demo program
 
 * demo
-  * main.go
+  * demo1
+    * main.go
+  * demo2
+    * main.go

@@ -3,6 +3,7 @@ package easierweb
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/websocket"
@@ -18,13 +19,15 @@ type Router struct {
 	server                 http.Server
 	middlewares            []Handle
 	errorHandle            ErrorHandle
+	requestHandle          RequestHandle
+	responseHandle         ResponseHandle
 }
 
 type Handle func(ctx *Context)
 
-type SimpleHandle func(ctx *Context, reqObj any) (any, error)
+type EasyHandle func(ctx *Context, reqObj any) (any, error)
 
-type SimpleCall func(ctx *Context, simpleHandle any) (any, error)
+type RequestHandle func(ctx *Context, easyHandle any) (any, error)
 
 type ResponseHandle func(ctx *Context, result any, err error)
 
@@ -58,34 +61,70 @@ func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
 	return r
 }
 
+func (r *Router) SetEasyHandleDefaultPlugins(requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	r.requestHandle = requestHandle
+	r.responseHandle = responseHandle
+	return r
+}
+
 // --
 
-func (r *Router) SimpleGET(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.GET(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyGET(path string, easyHandle any) *Router {
+	return r.ReEasyGET(path, easyHandle, r.requestHandle, r.responseHandle)
 }
 
-func (r *Router) SimpleHEAD(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.HEAD(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyHEAD(path string, easyHandle any) *Router {
+	return r.ReEasyHEAD(path, easyHandle, r.requestHandle, r.responseHandle)
 }
 
-func (r *Router) SimpleOPTIONS(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.OPTIONS(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyOPTIONS(path string, easyHandle any) *Router {
+	return r.ReEasyOPTIONS(path, easyHandle, r.requestHandle, r.responseHandle)
 }
 
-func (r *Router) SimplePOST(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.POST(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyPOST(path string, easyHandle any) *Router {
+	return r.ReEasyPOST(path, easyHandle, r.requestHandle, r.responseHandle)
 }
 
-func (r *Router) SimplePUT(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.PUT(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyPUT(path string, easyHandle any) *Router {
+	return r.ReEasyPUT(path, easyHandle, r.requestHandle, r.responseHandle)
 }
 
-func (r *Router) SimplePATCH(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.PATCH(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyPATCH(path string, easyHandle any) *Router {
+	return r.ReEasyPATCH(path, easyHandle, r.requestHandle, r.responseHandle)
 }
 
-func (r *Router) SimpleDELETE(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
-	return r.DELETE(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
+func (r *Router) EasyDELETE(path string, easyHandle any) *Router {
+	return r.ReEasyDELETE(path, easyHandle, r.requestHandle, r.responseHandle)
+}
+
+// --
+
+func (r *Router) ReEasyGET(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.GET(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+}
+
+func (r *Router) ReEasyHEAD(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.HEAD(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+}
+
+func (r *Router) ReEasyOPTIONS(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.OPTIONS(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+}
+
+func (r *Router) ReEasyPOST(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.POST(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+}
+
+func (r *Router) ReEasyPUT(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.PUT(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+}
+
+func (r *Router) ReEasyPATCH(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.PATCH(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
+}
+
+func (r *Router) ReEasyDELETE(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
+	return r.DELETE(path, r.simpleHandle2handle(easyHandle, requestHandle, responseHandle))
 }
 
 // --
@@ -305,13 +344,16 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 	}
 }
 
-func (r *Router) simpleHandle2handle(simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) Handle {
+func (r *Router) simpleHandle2handle(simpleHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) Handle {
 	return func(ctx *Context) {
-		result, err := simpleCall(ctx, simpleHandle)
-		if err != nil {
-			panic(err)
+		// 如果为空
+		if requestHandle == nil {
+			panic(errors.New("request handle is empty"))
 		}
-		// 响应结果处理
+		result, err := requestHandle(ctx, simpleHandle)
+		if responseHandle == nil {
+			panic(errors.New("response handle is empty"))
+		}
 		responseHandle(ctx, result, err)
 	}
 }
