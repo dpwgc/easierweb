@@ -25,19 +25,19 @@ type Context struct {
 	ResponseWriter http.ResponseWriter
 	WebsocketConn  *websocket.Conn
 	index          int
-	methods        []Method
+	handles        []Handle
 }
 
 func (c *Context) Next() {
 	c.index++
-	for c.index < len(c.methods) {
-		c.methods[c.index](c)
+	for c.index < len(c.handles) {
+		c.handles[c.index](c)
 		c.index++
 	}
 }
 
 func (c *Context) Abort() {
-	c.index = len(c.methods) + 1
+	c.index = len(c.handles) + 1
 }
 
 // POST Form File

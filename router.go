@@ -1,6 +1,7 @@
 package easierweb
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
@@ -14,11 +15,12 @@ type Router struct {
 	contextPath            string
 	multipartFormMaxMemory int64
 	router                 *httprouter.Router
-	middlewares            []Method
+	server                 http.Server
+	middlewares            []Handle
 	errorHandle            ErrorHandle
 }
 
-type Method func(ctx *Context)
+type Handle func(ctx *Context)
 
 type ErrorHandle func(ctx *Context, err any)
 
@@ -27,6 +29,11 @@ func New() *Router {
 		contextPath:            "",
 		multipartFormMaxMemory: 1024,
 		router:                 httprouter.New(),
+		errorHandle: func(ctx *Context, err any) {
+			fmt.Println("[ERROR]", ctx.Request.RemoteAddr, "->", ctx.Request.Method, ctx.Request.RequestURI, "::", err)
+			// 返回code=500加异常信息
+			ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("{\"error\":\"%s\"}", err))
+		},
 	}
 }
 
@@ -45,65 +52,65 @@ func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
 	return r
 }
 
-func (r *Router) GET(path string, method Method) *Router {
+func (r *Router) GET(path string, handle Handle) *Router {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) HEAD(path string, method Method) *Router {
+func (r *Router) HEAD(path string, handle Handle) *Router {
 	r.router.HEAD(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) OPTIONS(path string, method Method) *Router {
+func (r *Router) OPTIONS(path string, handle Handle) *Router {
 	r.router.OPTIONS(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) POST(path string, method Method) *Router {
+func (r *Router) POST(path string, handle Handle) *Router {
 	r.router.POST(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) PUT(path string, method Method) *Router {
+func (r *Router) PUT(path string, handle Handle) *Router {
 	r.router.PUT(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) PATCH(path string, method Method) *Router {
+func (r *Router) PATCH(path string, handle Handle) *Router {
 	r.router.PATCH(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) DELETE(path string, method Method) *Router {
+func (r *Router) DELETE(path string, handle Handle) *Router {
 	r.router.DELETE(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(method, res, req, par, nil)
+		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
-func (r *Router) Handle(method, path string, handle httprouter.Handle) *Router {
+func (r *Router) CustomHandle(method, path string, handle httprouter.Handle) *Router {
 	r.router.Handle(method, r.contextPath+path, handle)
 	return r
 }
 
-func (r *Router) WS(path string, method Method) *Router {
+func (r *Router) WS(path string, handle Handle) *Router {
 	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
 			Handler: func(ws *websocket.Conn) {
-				r.handle(method, res, req, par, ws)
+				r.handle(handle, res, req, par, ws)
 			},
 			Handshake: func(config *websocket.Config, req *http.Request) error {
 				// 解决跨域
@@ -115,8 +122,7 @@ func (r *Router) WS(path string, method Method) *Router {
 }
 
 func (r *Router) Static(path, dir string) *Router {
-	r.StaticFS(path, http.Dir(dir))
-	return r
+	return r.StaticFS(path, http.Dir(dir))
 }
 
 func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
@@ -124,35 +130,43 @@ func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
 	return r
 }
 
-func (r *Router) Use(middlewares ...Method) *Router {
+func (r *Router) Use(middlewares ...Handle) *Router {
 	r.middlewares = append(r.middlewares, middlewares...)
 	return r
 }
 
 func (r *Router) Run(addr string) error {
 	r.consoleStartPrint(addr)
-	return http.ListenAndServe(addr, r.router)
+	r.server = http.Server{
+		Addr:    addr,
+		Handler: r.router,
+	}
+	return r.server.ListenAndServe()
 }
 
 func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig *tls.Config) error {
 	r.consoleStartPrint(addr)
-	server := http.Server{
+	r.server = http.Server{
 		Addr:      addr,
 		Handler:   r.router,
 		TLSConfig: tlsConfig,
 	}
-	return server.ListenAndServeTLS(certFile, keyFile)
+	return r.server.ListenAndServeTLS(certFile, keyFile)
 }
 
-func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
+func (r *Router) Close() error {
+	return r.server.Shutdown(context.Background())
+}
+
+func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
 
 	ctx := Context{
 		index:          0,
-		methods:        append([]Method(nil), r.middlewares...),
-		Header:         make(map[string]string),
-		Path:           make(map[string]string),
-		Query:          make(map[string]string),
-		Form:           make(map[string]string),
+		handles:        append([]Handle(nil), r.middlewares...),
+		Header:         map[string]string{},
+		Path:           map[string]string{},
+		Query:          map[string]string{},
+		Form:           map[string]string{},
 		CustomCache:    make(map[string]any),
 		Request:        req,
 		ResponseWriter: res,
@@ -164,7 +178,7 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 	defer func() {
 		err := recover()
 		if err != nil && r.errorHandle != nil {
-			r.errorHandle(&ctx, err)
+			r.errorBottomUp(&ctx, err)
 		}
 	}()
 
@@ -181,36 +195,48 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 		}
 	}
 
-	for k, v := range req.Header {
-		if len(v) > 0 {
-			ctx.Header[k] = v[0]
+	if len(req.Header) > 0 {
+		ctx.Header = make(map[string]string, len(req.Header))
+		for k, v := range req.Header {
+			if len(v) > 0 {
+				ctx.Header[k] = v[0]
+			}
 		}
 	}
 
-	for _, v := range par {
-		ctx.Path[v.Key] = v.Value
-	}
-
-	for k, v := range req.URL.Query() {
-		if len(v) > 0 {
-			ctx.Query[k] = v[0]
+	if len(par) > 0 {
+		ctx.Path = make(map[string]string, len(par))
+		for _, v := range par {
+			ctx.Path[v.Key] = v.Value
 		}
 	}
 
-	for k, v := range req.PostForm {
-		if len(v) > 0 {
-			ctx.Form[k] = v[0]
+	if len(req.URL.Query()) > 0 {
+		ctx.Query = make(map[string]string, len(req.URL.Query()))
+		for k, v := range req.URL.Query() {
+			if len(v) > 0 {
+				ctx.Query[k] = v[0]
+			}
+		}
+	}
+
+	if len(req.PostForm) > 0 {
+		ctx.Form = make(map[string]string, len(req.PostForm))
+		for k, v := range req.PostForm {
+			if len(v) > 0 {
+				ctx.Form[k] = v[0]
+			}
 		}
 	}
 
 	if len(r.middlewares) > 0 {
-		ctx.methods = append(ctx.methods, method)
-		for ctx.index < len(ctx.methods) {
-			ctx.methods[ctx.index](&ctx)
+		ctx.handles = append(ctx.handles, handle)
+		for ctx.index < len(ctx.handles) {
+			ctx.handles[ctx.index](&ctx)
 			ctx.index++
 		}
 	} else {
-		method(&ctx)
+		handle(&ctx)
 	}
 	// 如果websocket连接不为空，关闭它
 	if ws != nil {
@@ -219,6 +245,13 @@ func (r *Router) handle(method Method, res http.ResponseWriter, req *http.Reques
 			panic(err)
 		}
 	}
+}
+
+func (r *Router) errorBottomUp(ctx *Context, err any) {
+	defer func() {
+		_ = recover()
+	}()
+	r.errorHandle(ctx, err)
 }
 
 func (r *Router) consoleStartPrint(addr string) {

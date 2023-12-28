@@ -11,24 +11,41 @@ import (
 
 type FormKV map[string]string
 
-func (kv FormKV) Set(key string, value string) {
+func (kv FormKV) Set(key string, value string) FormKV {
+	if kv == nil {
+		return kv
+	}
 	kv[key] = value
+	return kv
 }
 
 func (kv FormKV) Get(key string) string {
+	if kv == nil {
+		return ""
+	}
 	return kv[key]
 }
 
-func (kv FormKV) Del(key string) {
+func (kv FormKV) Del(key string) FormKV {
+	if kv == nil {
+		return kv
+	}
 	delete(kv, key)
+	return kv
 }
 
 func (kv FormKV) Has(key string) bool {
+	if kv == nil {
+		return false
+	}
 	_, has := kv[key]
 	return has
 }
 
 func (kv FormKV) Keys() []string {
+	if kv == nil {
+		return nil
+	}
 	var ks = make([]string, 0, len(kv))
 	for k := range kv {
 		ks = append(ks, k)
@@ -37,11 +54,54 @@ func (kv FormKV) Keys() []string {
 }
 
 func (kv FormKV) Values() []string {
+	if kv == nil {
+		return nil
+	}
 	var vs = make([]string, 0, len(kv))
 	for _, v := range kv {
 		vs = append(vs, v)
 	}
 	return vs
+}
+
+func (kv FormKV) Int(key string) int {
+	i, err := kv.ParseInt(key)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func (kv FormKV) Int32(key string) int32 {
+	i, err := kv.ParseInt32(key)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func (kv FormKV) Int64(key string) int64 {
+	i, err := kv.ParseInt64(key)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func (kv FormKV) Float32(key string) float32 {
+	f, err := kv.ParseFloat32(key)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+
+func (kv FormKV) Float64(key string) float64 {
+	f, err := kv.ParseFloat64(key)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }
 
 func (kv FormKV) GetInt(key string) int {
@@ -95,16 +155,18 @@ func (kv FormKV) ParseFloat64(key string) (float64, error) {
 
 type CacheKV map[string]any
 
-func (kv CacheKV) Set(key string, value any) {
+func (kv CacheKV) Set(key string, value any) CacheKV {
 	kv[key] = value
+	return kv
 }
 
 func (kv CacheKV) Get(key string) any {
 	return kv[key]
 }
 
-func (kv CacheKV) Del(key string) {
+func (kv CacheKV) Del(key string) CacheKV {
 	delete(kv, key)
+	return kv
 }
 
 func (kv CacheKV) Has(key string) bool {

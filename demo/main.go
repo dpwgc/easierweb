@@ -30,14 +30,6 @@ func main() {
 	// 静态文件服务（访问demo目录） http://127.0.0.1:8082/test/demoStatic
 	router.Static("/demoStatic/*filepath", "demo")
 
-	// 设置错误处理器，捕获panic出来的异常
-	router.SetErrorHandle(func(ctx *easierweb.Context, err any) {
-		errMsg := fmt.Sprintf("%s", err)
-		fmt.Println("err msg:", errMsg)
-		// 返回code=500加异常信息
-		ctx.WriteString(http.StatusInternalServerError, errMsg)
-	})
-
 	// 启动路由
 	err := router.Run(":8082")
 	// 启动TLS路由
@@ -56,21 +48,21 @@ func main() {
 func DemoGet(ctx *easierweb.Context) {
 
 	// 上下文缓存数据读取
-	cache := ctx.CustomCache.Get("test_cache1")
+	cache := ctx.CustomCache.Get("test_cache2")
 	if cache != nil {
-		fmt.Println("context cache:", cache.(string))
+		fmt.Println("context cache:", cache.(int))
 	}
 
 	// 获取URI参数
-	fmt.Println("id:", ctx.Path.GetInt64("id"))
+	fmt.Println("id:", ctx.Path.Int64("id"))
 
 	// 获取Query参数列表
 	fmt.Println("query keys:", ctx.Query.Keys())
 	fmt.Println("query values:", ctx.Query.Values())
 
 	// 获取Query参数
-	fmt.Println("type:", ctx.Query.GetInt("type"))
-	fmt.Println("price:", ctx.Query.GetFloat64("price"))
+	fmt.Println("type:", ctx.Query.Int("type"))
+	fmt.Println("price:", ctx.Query.Float64("price"))
 	fmt.Println("name:", ctx.Query.Get("name"))
 
 	// 返回
@@ -111,7 +103,7 @@ func DemoPost(ctx *easierweb.Context) {
 func DemoWS(ctx *easierweb.Context) {
 
 	// 获取URI参数
-	fmt.Println("id:", ctx.Path.GetInt64("id"))
+	fmt.Println("id:", ctx.Path.Int64("id"))
 
 	// 处理WebSocket连接
 	for {
@@ -187,8 +179,7 @@ func DemoDownload(ctx *easierweb.Context) {
 func DemoMiddleware(ctx *easierweb.Context) {
 
 	// 自定义缓存，可跟随Context传递到下层
-	ctx.CustomCache.Set("test_cache1", "aaa")
-	ctx.CustomCache.Set("test_cache2", 222)
+	ctx.CustomCache.Set("test_cache1", "aaa").Set("test_cache2", 222)
 
 	// 处理前-打印URL
 	fmt.Println("\nrequest url:", ctx.Request.URL.String())
