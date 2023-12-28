@@ -65,10 +65,15 @@ func DemoGet(ctx *easierweb.Context) {
 	fmt.Println("query keys:", ctx.Query.Keys())
 	fmt.Println("query values:", ctx.Query.Values())
 
-	// 获取Query参数
-	fmt.Println("type:", ctx.Query.Int("type"))
-	fmt.Println("price:", ctx.Query.Float64("price"))
-	fmt.Println("name:", ctx.Query.Get("name"))
+	// 将Query参数绑定到结构体上
+	query := DemoQuery{}
+	err := ctx.BindQuery(&query)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("type:", query.Type)
+	fmt.Println("price:", query.Price)
+	fmt.Println("name:", query.Name)
 
 	// 返回
 	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
@@ -87,7 +92,7 @@ func DemoGet(ctx *easierweb.Context) {
 */
 func DemoPost(ctx *easierweb.Context) {
 
-	// 序列化请求体
+	// 将Body数据绑定到结构体上
 	command := DemoCommand{}
 	err := ctx.BindJSON(&command)
 	if err != nil {
@@ -210,10 +215,17 @@ func DemoMiddleware(ctx *easierweb.Context) {
 	fmt.Println("result:", ctx.Result.String())
 }
 
-// DemoCommand 请求命令
+// DemoCommand 命令请求
 type DemoCommand struct {
 	Name string `json:"name"`
 	Id   int64  `json:"id"`
+}
+
+// DemoQuery 查询请求
+type DemoQuery struct {
+	Type  int     `schema:"type"`
+	Price float64 `schema:"price"`
+	Name  string  `schema:"name"`
 }
 
 // DemoResultDTO 响应DTO

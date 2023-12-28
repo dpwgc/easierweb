@@ -211,18 +211,24 @@ func (r *Router) newContext(res http.ResponseWriter, req *http.Request, par http
 		Result:         nil,
 	}
 
-	if !strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") &&
-		!strings.Contains(strings.ToLower(req.Header.Get("content-type")), "multipart/form-data") {
+	if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") ||
+		strings.Contains(strings.ToLower(req.Header.Get("content-type")), "multipart/form-data") {
+		err := req.ParseMultipartForm(r.multipartFormMaxMemory)
+		if err != nil {
+			return nil, err
+		}
+	} else if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "application/x-www-form-urlencoded") ||
+		strings.Contains(strings.ToLower(req.Header.Get("content-type")), "application/x-www-form-urlencoded") {
+		err := req.ParseForm()
+		if err != nil {
+			return nil, err
+		}
+	} else {
 		bodyBytes, err := io.ReadAll(req.Body)
 		if err != nil {
 			return nil, err
 		}
 		ctx.Body = bodyBytes
-	} else {
-		err := req.ParseMultipartForm(r.multipartFormMaxMemory)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	if len(req.Header) > 0 {

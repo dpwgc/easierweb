@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/gorilla/schema"
 	"golang.org/x/net/websocket"
 	"gopkg.in/yaml.v3"
 	"mime/multipart"
@@ -57,6 +58,18 @@ func (c *Context) GetFile(key string) (multipart.File, error) {
 		return nil, err
 	}
 	return file, nil
+}
+
+// Params Bind
+
+var decoder = schema.NewDecoder()
+
+func (c *Context) BindQuery(obj any) error {
+	return decoder.Decode(obj, c.Request.URL.Query())
+}
+
+func (c *Context) BindForm(obj any) error {
+	return decoder.Decode(obj, c.Request.PostForm)
 }
 
 // POST Body Bind
