@@ -33,7 +33,7 @@ func main() {
 
 	// 更简单的接口写法
 	// 接口处理函数直接return结果，响应处理器接收结果并响应客户端
-	router.SimpleGET("/demoSimpleGet/:id", DemoSimpleGet, utils.JSONResponseHandle)
+	router.SimpleGET("/demoSimpleGet/:id", DemoSimpleGet, utils.SimpleCallJSON, utils.JSONResponseHandle)
 
 	// 启动路由
 	err := router.Run(":8082")

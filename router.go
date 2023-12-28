@@ -22,7 +22,9 @@ type Router struct {
 
 type Handle func(ctx *Context)
 
-type SimpleHandle func(ctx *Context) (any, error)
+type SimpleHandle func(ctx *Context, reqObj any) (any, error)
+
+type SimpleCall func(ctx *Context, simpleHandle any) (any, error)
 
 type ResponseHandle func(ctx *Context, result any, err error)
 
@@ -58,32 +60,32 @@ func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
 
 // --
 
-func (r *Router) SimpleGET(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.GET(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimpleGET(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.GET(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
-func (r *Router) SimpleHEAD(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.HEAD(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimpleHEAD(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.HEAD(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
-func (r *Router) SimpleOPTIONS(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.OPTIONS(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimpleOPTIONS(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.OPTIONS(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
-func (r *Router) SimplePOST(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.POST(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimplePOST(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.POST(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
-func (r *Router) SimplePUT(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.PUT(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimplePUT(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.PUT(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
-func (r *Router) SimplePATCH(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.PATCH(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimplePATCH(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.PATCH(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
-func (r *Router) SimpleDELETE(path string, simpleHandle SimpleHandle, responseHandle ResponseHandle) *Router {
-	return r.DELETE(path, r.simpleHandle2handle(simpleHandle, responseHandle))
+func (r *Router) SimpleDELETE(path string, simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) *Router {
+	return r.DELETE(path, r.simpleHandle2handle(simpleHandle, simpleCall, responseHandle))
 }
 
 // --
@@ -303,9 +305,13 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 	}
 }
 
-func (r *Router) simpleHandle2handle(simpleHandle SimpleHandle, responseHandle ResponseHandle) Handle {
+func (r *Router) simpleHandle2handle(simpleHandle any, simpleCall SimpleCall, responseHandle ResponseHandle) Handle {
 	return func(ctx *Context) {
-		result, err := simpleHandle(ctx)
+		result, err := simpleCall(ctx, simpleHandle)
+		if err != nil {
+			panic(err)
+		}
+		// 响应结果处理
 		responseHandle(ctx, result, err)
 	}
 }
