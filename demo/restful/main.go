@@ -33,5 +33,5 @@ func timeCost(ctx *easierweb.Context) {
 	start := time.Now().UnixMilli()
 	ctx.Next()
 	end := time.Now().UnixMilli()
-	fmt.Printf("[%s] time cost: %vms \n", ctx.Request.RequestURI, end-start)
+	fmt.Printf("%s -> time cost: %vms \n", ctx.Request.RequestURI, end-start)
 }
