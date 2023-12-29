@@ -27,6 +27,7 @@ type Context struct {
 	WebsocketConn  *websocket.Conn
 	index          int
 	handles        []Handle
+	isWrite        bool
 }
 
 func (c *Context) Next() {
@@ -147,10 +148,14 @@ func (c *Context) NoContent(code int) {
 }
 
 func (c *Context) Write(code int, data []byte) {
+	if c.isWrite {
+		return
+	}
 	c.Code = code
 	c.Result = data
 	c.ResponseWriter.WriteHeader(code)
 	_, err := c.ResponseWriter.Write(data)
+	c.isWrite = true
 	if err != nil {
 		panic(err)
 	}

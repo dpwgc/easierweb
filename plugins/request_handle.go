@@ -6,7 +6,12 @@ import (
 )
 
 func JSONRequestHandle(ctx *easierweb.Context, paramValues []reflect.Value) error {
-	if len(ctx.Body) > 0 {
+	if len(ctx.Form) > 0 {
+		err := ctx.BindForm(paramValues[1].Addr().Interface())
+		if err != nil {
+			return err
+		}
+	} else if len(ctx.Body) > 0 {
 		err := ctx.BindJSON(paramValues[1].Addr().Interface())
 		if err != nil {
 			return err

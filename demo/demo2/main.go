@@ -20,7 +20,7 @@ func main() {
 
 	// 更简单更灵活的接口写法，不需要手写请求Body/Query参数/Form参数绑定逻辑以及Write响应逻辑，由框架代理实现
 	// 需要配置请求处理插件和响应处理插件，可在router上全局配置，也可在单个方法上定制化配置插件
-	// 请求处理插件-JSONRequestHandle：解析Json Body数据与Query参数，并将两者的参数自动绑定到函数的第二个入参上
+	// 请求处理插件-JSONRequestHandle：解析Json Body数据、Query参数、Form参数，并将两者的参数自动绑定到函数的第二个入参上
 	// 响应处理插件-JSONResponseHandle：自动接收函数返回的响应对象，并将其序列化成Json字符串回传给客户端
 	router.SetEasyHandlePlugins(plugins.JSONRequestHandle, plugins.JSONResponseHandle)
 

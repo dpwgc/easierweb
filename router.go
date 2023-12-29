@@ -39,11 +39,9 @@ func New() *Router {
 		contextPath:            "",
 		multipartFormMaxMemory: 1024,
 		router:                 httprouter.New(),
-		errorHandle: func(ctx *Context, err any) {
-			fmt.Println("[ERROR]", ctx.Request.RemoteAddr, "->", ctx.Request.Method, ctx.Request.RequestURI, "::", err)
-			// 返回code=500加异常信息
-			ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("{\"error\":\"%s\"}", err))
-		},
+		errorHandle:            defaultErrorHandle,
+		requestHandle:          defaultRequestHandle,
+		responseHandle:         defaultResponseHandle,
 	}
 }
 
@@ -349,10 +347,16 @@ func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, 
 	return func(ctx *Context) {
 		// 如果为空
 		if requestHandle == nil {
-			panic(errors.New("request handle is empty"))
+			if r.requestHandle == nil {
+				panic(errors.New("request handle is empty"))
+			}
+			requestHandle = r.requestHandle
 		}
 		if responseHandle == nil {
-			panic(errors.New("response handle is empty"))
+			if r.responseHandle == nil {
+				panic(errors.New("response handle is empty"))
+			}
+			responseHandle = r.responseHandle
 		}
 		// 反射获取函数类型
 		funcType := reflect.TypeOf(easyHandle)
