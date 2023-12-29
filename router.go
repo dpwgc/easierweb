@@ -380,6 +380,12 @@ func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, 
 		// 调用函数
 		returnValues := reflect.ValueOf(easyHandle).Call(paramValues)
 
+		// 无对象返回，无错误返回
+		if len(returnValues) == 0 {
+			responseHandle(ctx, nil, nil)
+			return
+		}
+
 		// 处理返回值
 		var resultValue any
 		if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
@@ -387,8 +393,15 @@ func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, 
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Slice {
 			resultValue = returnValues[0].Interface()
 		}
-		errValue, _ := returnValues[1].Interface().(error)
 
+		// 无错误返回
+		if len(returnValues) == 1 {
+			responseHandle(ctx, resultValue, nil)
+			return
+		}
+
+		// 有对象返回，有错误返回
+		errValue, _ := returnValues[1].Interface().(error)
 		responseHandle(ctx, resultValue, errValue)
 	}
 }

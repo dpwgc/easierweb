@@ -18,7 +18,7 @@ func main() {
 	// 添加中间件
 	router.Use(DemoMiddleware)
 
-	// 更简单的接口写法，不需要手写请求Body/Query参数/Form参数绑定逻辑以及Write响应逻辑，由框架代理实现
+	// 更简单更灵活的接口写法，不需要手写请求Body/Query参数/Form参数绑定逻辑以及Write响应逻辑，由框架代理实现
 	// 需要配置请求处理插件和响应处理插件，可在router上全局配置，也可在单个方法上定制化配置插件
 	// 请求处理插件-JSONRequestHandle：解析Json Body数据与Query参数，并将两者的参数自动绑定到函数的第二个入参上
 	// 响应处理插件-JSONResponseHandle：自动接收函数返回的响应对象，并将其序列化成Json字符串回传给客户端
@@ -29,10 +29,11 @@ func main() {
 	router.EasyGET("/demoEasyGet/:id", DemoEasyGet)
 
 	// 局部定制化配置方法的请求/响应处理插件
-	// 响应处理插件-BytesResponseHandle：自动接收函数返回的字节数组，并将其回传给客户端，该响应处理器适用于：返回字符串、返回文件、空响应体等场景
+	// 响应处理插件-BytesResponseHandle：自动接收函数返回的字节数组，并将其回传给客户端，该响应处理器适用于：返回字符串、返回文件等场景
 	router.ReEasyGET("/demoEasyGetString", DemoEasyGetString, plugins.JSONRequestHandle, plugins.BytesResponseHandle)
 	router.ReEasyGET("/DemoEasyGetHtml", DemoEasyGetHTML, plugins.JSONRequestHandle, plugins.BytesResponseHandle)
-	router.ReEasyGET("/demoEasyGetNoContent", DemoEasyGetNoContent, plugins.JSONRequestHandle, plugins.BytesResponseHandle)
+	// 空响应体
+	router.EasyGET("/demoEasyGetNoContent", DemoEasyGetNoContent)
 
 	// 启动路由
 	err := router.Run(":8081")
@@ -79,25 +80,27 @@ func DemoEasyGet(ctx *easierweb.Context) (*DemoResultDTO, error) {
 }
 
 // DemoEasyGetString GET接口(返回字符串)-简易写法
+// 函数的可以没有第二个error返回值
 // http://127.0.0.1:8081/test/demoEasyGetString
-func DemoEasyGetString(ctx *easierweb.Context) (*[]byte, error) {
+func DemoEasyGetString(ctx *easierweb.Context) *[]byte {
 	// 以字节数组形式返回
 	res := []byte("hello world")
-	return &res, nil
+	return &res
 }
 
 // DemoEasyGetHTML GET接口(返回HTML)-简易写法
 // http://127.0.0.1:8081/test/demoEasyGetHtml
-func DemoEasyGetHTML(ctx *easierweb.Context) (*[]byte, error) {
+func DemoEasyGetHTML(ctx *easierweb.Context) *[]byte {
 	// 以字节数组形式返回
 	res := []byte("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Title</title>\n</head>\n<body>\n    hello world\n</body>\n</html>")
-	return &res, nil
+	return &res
 }
 
 // DemoEasyGetNoContent GET接口(响应数据为空)-简易写法
+// 无返回值时，http code为204 NoContent
 // http://127.0.0.1:8081/test/demoEasyGetNoContent
-func DemoEasyGetNoContent(ctx *easierweb.Context) (*[]byte, error) {
-	return nil, nil
+func DemoEasyGetNoContent(ctx *easierweb.Context) {
+	return
 }
 
 // DemoMiddleware 中间件
