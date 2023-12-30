@@ -2,23 +2,22 @@ package plugins
 
 import (
 	"github.com/dpwgc/easierweb"
-	"reflect"
 )
 
-func JSONRequestHandle(ctx *easierweb.Context, paramValues []reflect.Value) error {
+func JSONRequestHandle(ctx *easierweb.Context, reqObj any) error {
 	if len(ctx.Form) > 0 {
-		err := ctx.BindForm(paramValues[1].Addr().Interface())
+		err := ctx.BindForm(reqObj)
 		if err != nil {
 			return err
 		}
 	} else if len(ctx.Body) > 0 {
-		err := ctx.BindJSON(paramValues[1].Addr().Interface())
+		err := ctx.BindJSON(reqObj)
 		if err != nil {
 			return err
 		}
 	}
 	if len(ctx.Query) > 0 {
-		err := ctx.BindQuery(paramValues[1].Addr().Interface())
+		err := ctx.BindQuery(reqObj)
 		if err != nil {
 			return err
 		}
@@ -26,47 +25,41 @@ func JSONRequestHandle(ctx *easierweb.Context, paramValues []reflect.Value) erro
 	return nil
 }
 
-func YAMLRequestHandle(ctx *easierweb.Context, paramValues []reflect.Value) error {
-	if len(ctx.Body) > 0 {
-		err := ctx.BindYAML(paramValues[1].Addr().Interface())
-		if err != nil {
-			return err
-		}
-	}
-	if len(ctx.Query) > 0 {
-		err := ctx.BindQuery(paramValues[1].Addr().Interface())
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func XMLRequestHandle(ctx *easierweb.Context, paramValues []reflect.Value) error {
-	if len(ctx.Body) > 0 {
-		err := ctx.BindXML(paramValues[1].Addr().Interface())
-		if err != nil {
-			return err
-		}
-	}
-	if len(ctx.Query) > 0 {
-		err := ctx.BindQuery(paramValues[1].Addr().Interface())
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func FormRequestHandle(ctx *easierweb.Context, paramValues []reflect.Value) error {
+func YAMLRequestHandle(ctx *easierweb.Context, reqObj any) error {
 	if len(ctx.Form) > 0 {
-		err := ctx.BindForm(paramValues[1].Addr().Interface())
+		err := ctx.BindForm(reqObj)
+		if err != nil {
+			return err
+		}
+	} else if len(ctx.Body) > 0 {
+		err := ctx.BindYAML(reqObj)
 		if err != nil {
 			return err
 		}
 	}
 	if len(ctx.Query) > 0 {
-		err := ctx.BindQuery(paramValues[1].Addr().Interface())
+		err := ctx.BindQuery(reqObj)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func XMLRequestHandle(ctx *easierweb.Context, reqObj any) error {
+	if len(ctx.Form) > 0 {
+		err := ctx.BindForm(reqObj)
+		if err != nil {
+			return err
+		}
+	} else if len(ctx.Body) > 0 {
+		err := ctx.BindXML(reqObj)
+		if err != nil {
+			return err
+		}
+	}
+	if len(ctx.Query) > 0 {
+		err := ctx.BindQuery(reqObj)
 		if err != nil {
 			return err
 		}

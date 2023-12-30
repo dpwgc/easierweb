@@ -28,7 +28,7 @@ type Handle func(ctx *Context)
 
 type EasyHandle func(ctx *Context, reqObj any) (any, error)
 
-type RequestHandle func(ctx *Context, paramValues []reflect.Value) error
+type RequestHandle func(ctx *Context, reqObj any) error
 
 type ResponseHandle func(ctx *Context, result any, err error)
 
@@ -364,6 +364,7 @@ func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, 
 		// 创建参数值的切片
 		var paramValues []reflect.Value
 
+		var reqObj any = nil
 		// 如果没有第二个参数，就不进行自动绑定了
 		if funcType.NumIn() == 1 {
 			paramValues = make([]reflect.Value, 1)
@@ -372,13 +373,16 @@ func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, 
 			paramValues = make([]reflect.Value, 2)
 			paramValues[0] = reflect.ValueOf(ctx).Elem().Addr()
 			paramValues[1] = reflect.New(funcType.In(1)).Elem()
+			reqObj = paramValues[1].Addr().Interface()
 		} else {
 			panic(errors.New("response handle parameters does not match"))
 		}
 
-		err := requestHandle(ctx, paramValues)
-		if err != nil {
-			responseHandle(ctx, nil, err)
+		if reqObj != nil {
+			err := requestHandle(ctx, reqObj)
+			if err != nil {
+				responseHandle(ctx, nil, err)
+			}
 		}
 
 		// 调用函数

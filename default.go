@@ -3,23 +3,22 @@ package easierweb
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 )
 
-func defaultRequestHandle(ctx *Context, paramValues []reflect.Value) error {
+func defaultRequestHandle(ctx *Context, reqObj any) error {
 	if len(ctx.Form) > 0 {
-		err := ctx.BindForm(paramValues[1].Addr().Interface())
+		err := ctx.BindForm(reqObj)
 		if err != nil {
 			return err
 		}
 	} else if len(ctx.Body) > 0 {
-		err := ctx.BindJSON(paramValues[1].Addr().Interface())
+		err := ctx.BindJSON(reqObj)
 		if err != nil {
 			return err
 		}
 	}
 	if len(ctx.Query) > 0 {
-		err := ctx.BindQuery(paramValues[1].Addr().Interface())
+		err := ctx.BindQuery(reqObj)
 		if err != nil {
 			return err
 		}

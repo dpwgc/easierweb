@@ -8,10 +8,11 @@ import (
 	"time"
 )
 
-// RESTful API Demo
+// full demo
+// a more complete restful example
 func main() {
 
-	// create a route, root path is /api/v2
+	// create a router, root path is /api/v2
 	router := easierweb.New().SetContextPath("/api/v2")
 
 	// use middleware

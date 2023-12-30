@@ -3,81 +3,75 @@ package main
 import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"time"
 )
 
-// 示例程序
+// base demo
+// basic usage, like gin and echo
+// includes common interfaces, websocket connection, file upload and download, static file service, middleware
 func main() {
 
-	// 新建路由
+	// create a router
 	router := easierweb.New()
 
-	// 设置根路径 /test
+	// set uri root path
 	router.SetContextPath("/test")
 
-	// 添加中间件
+	// set middleware
 	router.Use(DemoMiddleware)
 
-	// 常规服务（GET接口，POST接口，Websocket连接处理器，表单文件上传接口，文件下载接口）
+	// set handles
 	router.GET("/demoGet/:id", DemoGet)
 	router.POST("/demoPost", DemoPost)
-	router.WS("/demoWS/:id", DemoWS)
 	router.POST("/demoUpload", DemoUpload)
 	router.GET("/demoDownload/:fileName", DemoDownload)
 
-	// 静态文件服务（访问demo目录） http://127.0.0.1:8082/test/demoStatic
+	// set websocket handle
+	router.WS("/demoWS/:id", DemoWS)
+
+	// static File Service (access the demo directory)
 	router.Static("/demoStatic/*filepath", "demo")
 
-	// 启动路由
-	err := router.Run(":8082")
-	// 启动TLS路由
-	/*
-		router.RunTLS("0.0.0.0:443", "cert.pem", "private.key", &tls.Config{
-			ClientAuth: tls.NoClientCert,
-		})
-	*/
-	if err != nil {
-		panic(err)
-	}
+	// started on port 80
+	log.Fatal(router.Run(":80"))
 }
 
-// DemoGet GET接口
+// DemoGet get request handle
 // http://127.0.0.1:8082/test/demoGet/123?type=1&price=10.24&name=dpwgc
 func DemoGet(ctx *easierweb.Context) {
 
-	// 上下文缓存数据读取
-	cache := ctx.CustomCache.Get("test_cache2")
-	if cache != nil {
-		fmt.Println("context cache:", cache.(int))
-	}
-
-	// 获取URI参数
+	// print uri path parameter
 	fmt.Println("id:", ctx.Path.Int64("id"))
 
-	// 获取Query参数列表
+	// print keys for all uri query parameters
 	fmt.Println("query keys:", ctx.Query.Keys())
+
+	// print values for all uri query parameters
 	fmt.Println("query values:", ctx.Query.Values())
 
-	// 将Query参数绑定到结构体上
+	// bind the uri query parameters to the DemoQuery struct
 	query := DemoQuery{}
 	err := ctx.BindQuery(&query)
 	if err != nil {
 		panic(err)
 	}
+
+	// print parameters
 	fmt.Println("type:", query.Type)
 	fmt.Println("price:", query.Price)
 	fmt.Println("name:", query.Name)
 
-	// 返回
+	// write response
 	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "GET Request",
 	})
 }
 
-// DemoPost POST接口
+// DemoPost post request handle
 // http://127.0.0.1:8082/test/demoPost
 /*
 {
@@ -87,42 +81,51 @@ func DemoGet(ctx *easierweb.Context) {
 */
 func DemoPost(ctx *easierweb.Context) {
 
-	// 将Body数据绑定到结构体上
 	command := DemoCommand{}
+
+	// bind the json body data to the DemoCommand struct
 	err := ctx.BindJSON(&command)
+
+	// bind the yaml body data to the DemoCommand struct
+	// err := ctx.BindYAML(&command)
+
+	// bind the xml body data to the DemoCommand struct
+	// err := ctx.BindXML(&command)
+
 	if err != nil {
 		panic(err)
 	}
 
+	// print body data
 	fmt.Println("body -> id:", command.Id, ", name:", command.Name)
 
-	// 返回
+	// write response
 	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "POST Request",
 	})
 }
 
-// DemoWS Websocket连接
+// DemoWS websocket connection handle
 // ws://127.0.0.1:8082/test/demoWS/123
 func DemoWS(ctx *easierweb.Context) {
 
-	// 获取URI参数
+	// print the uri parameter
 	fmt.Println("id:", ctx.Path.Int64("id"))
 
-	// 处理WebSocket连接
+	// handles websocket connection
 	for {
-		// 读取字符串消息
+		// read string message
 		msg, err := ctx.ReceiveString()
-		// 读取字节消息
+		// read bytes message
 		// msg, err := ctx.Receive()
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println("read ws msg:", msg)
+		fmt.Println("read websocket msg:", msg)
 
-		// 发送消息
+		// send json message
 		err = ctx.SendJSON(DemoResultDTO{
 			Msg:  "hello world",
 			Data: "Websocket Connect",
@@ -133,18 +136,17 @@ func DemoWS(ctx *easierweb.Context) {
 
 		time.Sleep(3 * time.Second)
 
-		// 函数return后会自动关闭连接
-		fmt.Println("close ws conn:")
+		// when the function returns, the connection is automatically closed
 		return
 	}
 }
 
-// DemoUpload 文件上传接口
+// DemoUpload file upload handle
 // http://127.0.0.1:8082/test/demoUpload
-// Form表单参数
-// 'file' -> '文件'
+// form parameters: file=demo.txt(file)
 func DemoUpload(ctx *easierweb.Context) {
 
+	// get the keys for all form files
 	fmt.Println("file keys:", ctx.FileKeys())
 
 	// 获取表单文件
@@ -161,56 +163,60 @@ func DemoUpload(ctx *easierweb.Context) {
 
 	fmt.Println("file:", file)
 
-	// 返回
+	// write response
 	ctx.WriteJSON(http.StatusOK, DemoResultDTO{
 		Msg:  "hello world",
 		Data: "Upload File",
 	})
 }
 
-// DemoDownload 文件下载接口
+// DemoDownload file download handle
 // http://127.0.0.1:8082/test/demoDownload/README.md
-// 下载当前服务运行目录下的指定文件
+// download the specified file in the directory where the service is running
 func DemoDownload(ctx *easierweb.Context) {
 
-	// 获取本地文件并返回数据（contentType参数不传：默认application/octet-stream，fileName参数不传：下载后文件名默认为时间戳）
+	// get the local file and return file data
+	// If the contentType parameter is not specified, application/octet-stream is the default
+	// If the fileName parameter is not specified, the file name is a timestamp by default
 	ctx.WriteLocalFile("", ctx.Path.Get("fileName"), ctx.Path.Get("fileName"))
 
-	// 直接返回文件字节数据
+	// returns the byte data of the file directly
 	// ctx.WriteFile("", ctx.Path.Get("fileName"), []byte{})
 }
 
-// DemoMiddleware 中间件
+// DemoMiddleware middleware handle
 func DemoMiddleware(ctx *easierweb.Context) {
 
-	// 自定义缓存，可跟随Context传递到下层
-	ctx.CustomCache.Set("test_cache1", "aaa").Set("test_cache2", 222)
-
-	// 处理前-打印URL
+	// before processing, print the url
 	fmt.Println("\nrequest url:", ctx.Request.URL.String())
 
-	// 跳到下一个方法
+	// next handle
 	ctx.Next()
 
-	// 处理后-打印响应结果
+	// after processing, print the result
 	fmt.Println("result:", ctx.Result.String())
 }
 
-// DemoCommand 命令请求
+// DemoCommand write request
+// if you want to use the bind data feature, you need to configure the tag to get the field mapping
+// when parsing json body data, use json tag
+// when parsing uri query parameters data, use schema tag
 type DemoCommand struct {
 	Name string `json:"name"`
 	Id   int64  `json:"id"`
 }
 
-// DemoQuery 查询请求
+// DemoQuery query request
+// if you want to use the bind data feature, you need to configure the tag to get the field mapping
+// when parsing json body data, use json tag
+// when parsing uri query parameters data, use schema tag
 type DemoQuery struct {
-	// URI Query参数接收，需配置schema标签
 	Type  int     `schema:"type"`
 	Price float64 `schema:"price"`
 	Name  string  `schema:"name"`
 }
 
-// DemoResultDTO 响应DTO
+// DemoResultDTO result data
 type DemoResultDTO struct {
 	Msg  string `json:"msg"`
 	Data string `json:"data"`
