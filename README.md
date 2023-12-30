@@ -7,8 +7,8 @@
 ## Features
 * Easier to handle http request and response.
 * Custom middleware framework.
-* Easier to obtain path/query/form parameters and convert their type.
-* Easier to bind json/yaml/xml body data.
+* Easier to obtain parameters and bind data.
+* Can auto bind query/form/body data.
 * Easier to write websocket service.
 * Easier to write file services.
 * Centralized error capture.
@@ -27,11 +27,11 @@ go get github.com/dpwgc/easierweb
 
 ## Example
 
-The framework provides two different styles of API code writing
+framework provides two different styles of API code writing
 
-### Basic example
+### Basic API code example
 
-* basic usage, like gin and echo
+* like gin and echo, only one context parameter
 
 ```go
 package main
@@ -67,9 +67,34 @@ func hello(ctx *easierweb.Context) {
 }
 ```
 
-### Easier example
+* you can use the bind method to obtain the request data
 
-* easier to write api code, don't need to write logic for binding data and writing response data. the framework will help you do this. like spring boot
+```go
+// struct
+request := Request{}
+
+// bind uri query parameters
+ctx.BindQuery(&request)
+
+// bind json body data
+ctx.BindJSON(&request)
+```
+
+```go
+// obtain the uri path parameter
+id := ctx.Path.Int64("id")
+
+// obtain the uri query parameter
+name := ctx.Path.Get("name")
+
+// obtain the post form parameter
+mobile := ctx.Form.Get("mobile")
+```
+
+### Easier API code example
+
+* like spring boot, has input object and return values
+* easier to write api code, don't need to write logic for binding data and writing response data. framework will help you do this
 
 ```go
 package main
@@ -112,9 +137,9 @@ type Response struct {
 }
 ```
 
-* the framework default use json format to process request and response data
+* framework default use json format to process request and response data
 * if you want to change the format, you can use the plugin, framework comes with multiple plug-ins
-* use method `SetEasyHandlePlugins` to set up the plug-ins
+* use method 'SetEasyHandlePlugins' to set up the plug-ins
 
 ```go
 // use xml format to process request and response data (global configuration, takes effect for all api)
@@ -122,7 +147,7 @@ router.SetEasyHandlePlugins(plugins.XMLRequestHandle, plugins.XMLResponseHandle)
 ```
 
 * if you want to change the request and response format for a single api
-* use method `ReEasyGET` to set up the path, handle and plug-ins
+* use method 'ReEasyGET' to set up the path, handle and plug-ins
 
 ```go
 // use xml format to process request and response data (takes effect only for this api)
