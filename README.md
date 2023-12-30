@@ -29,6 +29,9 @@ go get github.com/dpwgc/easierweb
 
 framework provides two different styles of API code writing
 
+* basic
+* easier
+
 ### Basic API code example
 
 * like gin and echo, only one context parameter
