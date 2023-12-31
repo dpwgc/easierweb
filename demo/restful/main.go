@@ -20,14 +20,14 @@ func main() {
 	// use middleware
 	router.Use(timeCost)
 
-	member := app.MemberController{}
+	memberController := app.MemberController{}
 
 	// set methods
-	router.EasyPOST("/member", member.Add)
-	router.EasyDELETE("/member/:id", member.Del)
-	router.EasyPUT("/member/:id", member.Edit)
-	router.EasyGET("/member/:id", member.Get)
-	router.EasyGET("/members", member.List)
+	router.EasyPOST("/member", memberController.Add)
+	router.EasyDELETE("/member/:id", memberController.Del)
+	router.EasyPUT("/member/:id", memberController.Edit)
+	router.EasyGET("/member/:id", memberController.Get)
+	router.EasyGET("/members", memberController.List)
 
 	// started on port 80
 	log.Fatal(router.Run(":80"))
