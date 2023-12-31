@@ -34,6 +34,11 @@ type Router struct {
 	closeConsolePrint      bool
 }
 
+type PluginOptions struct {
+	RequestHandle  RequestHandle
+	ResponseHandle ResponseHandle
+}
+
 type Handle func(ctx *Context)
 
 type RequestHandle func(ctx *Context, reqObj any) error
@@ -50,90 +55,58 @@ func New(opts ...RouterOptions) *Router {
 		requestHandle:          defaultRequestHandle,
 		responseHandle:         defaultResponseHandle,
 	}
-	if len(opts) > 0 {
-		for _, v := range opts {
-			if v.RootPath != "" {
-				r.rootPath = v.RootPath
-			}
-			if v.MultipartFormMaxMemory > 0 {
-				r.multipartFormMaxMemory = v.MultipartFormMaxMemory
-			}
-			if v.ErrorHandle != nil {
-				r.errorHandle = v.ErrorHandle
-			}
-			if v.RequestHandle != nil {
-				r.requestHandle = v.RequestHandle
-			}
-			if v.ResponseHandle != nil {
-				r.responseHandle = v.ResponseHandle
-			}
-			r.closeConsolePrint = v.CloseConsolePrint
+	for _, v := range opts {
+		if v.RootPath != "" {
+			r.rootPath = v.RootPath
 		}
+		if v.MultipartFormMaxMemory > 0 {
+			r.multipartFormMaxMemory = v.MultipartFormMaxMemory
+		}
+		if v.ErrorHandle != nil {
+			r.errorHandle = v.ErrorHandle
+		}
+		if v.RequestHandle != nil {
+			r.requestHandle = v.RequestHandle
+		}
+		if v.ResponseHandle != nil {
+			r.responseHandle = v.ResponseHandle
+		}
+		r.closeConsolePrint = v.CloseConsolePrint
 	}
 	return r
 }
 
-// --
+// easier usage function
 
-func (r *Router) EasyGET(path string, easyHandle any) *Router {
-	return r.ReEasyGET(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyGET(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.GET(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-func (r *Router) EasyHEAD(path string, easyHandle any) *Router {
-	return r.ReEasyHEAD(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyHEAD(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.HEAD(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-func (r *Router) EasyOPTIONS(path string, easyHandle any) *Router {
-	return r.ReEasyOPTIONS(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyOPTIONS(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.OPTIONS(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-func (r *Router) EasyPOST(path string, easyHandle any) *Router {
-	return r.ReEasyPOST(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyPOST(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.POST(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-func (r *Router) EasyPUT(path string, easyHandle any) *Router {
-	return r.ReEasyPUT(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyPUT(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.PUT(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-func (r *Router) EasyPATCH(path string, easyHandle any) *Router {
-	return r.ReEasyPATCH(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyPATCH(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.PATCH(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-func (r *Router) EasyDELETE(path string, easyHandle any) *Router {
-	return r.ReEasyDELETE(path, easyHandle, r.requestHandle, r.responseHandle)
+func (r *Router) EasyDELETE(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.DELETE(path, r.easyHandle2handle(easyHandle, opts))
 }
 
-// --
-
-func (r *Router) ReEasyGET(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.GET(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-func (r *Router) ReEasyHEAD(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.HEAD(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-func (r *Router) ReEasyOPTIONS(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.OPTIONS(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-func (r *Router) ReEasyPOST(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.POST(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-func (r *Router) ReEasyPUT(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.PUT(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-func (r *Router) ReEasyPATCH(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.PATCH(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-func (r *Router) ReEasyDELETE(path string, easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	return r.DELETE(path, r.easyHandle2handle(easyHandle, requestHandle, responseHandle))
-}
-
-// --
+// basic usage function
 
 func (r *Router) GET(path string, handle Handle) *Router {
 	r.router.GET(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
@@ -349,8 +322,14 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 	}
 }
 
-func (r *Router) easyHandle2handle(easyHandle any, requestHandle RequestHandle, responseHandle ResponseHandle) Handle {
+func (r *Router) easyHandle2handle(easyHandle any, opts []PluginOptions) Handle {
 	return func(ctx *Context) {
+		var requestHandle RequestHandle
+		var responseHandle ResponseHandle
+		for _, v := range opts {
+			requestHandle = v.RequestHandle
+			responseHandle = v.ResponseHandle
+		}
 		// 如果为空
 		if requestHandle == nil {
 			if r.requestHandle == nil {

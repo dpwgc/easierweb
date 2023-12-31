@@ -170,11 +170,14 @@ router := easierweb.New(easierweb.RouterOptions{
 ```
 
 * if you want to change the request and response format for a single api
-* use function 'ReEasyGET', 'ReEasyPOST', 'ReEasyPUT'... to set up the path, handle and plugins
+* use 'PluginOptions' to set up the plugins
 
 ```go
 // use xml format to process request and response data (takes effect only for this api)
-router.ReEasyGET("/test", TestHandle, plugins.XMLRequestHandle, plugins.XMLResponseHandle)
+router.EasyGET("/test", test, easierweb.PluginOptions{
+   RequestHandle: plugins.XMLRequestHandle,
+   ResponseHandle: plugins.XMLResponseHandle,
+})
 ```
 
 ***

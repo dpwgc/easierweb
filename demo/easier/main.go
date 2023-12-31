@@ -17,7 +17,12 @@ func main() {
 	// the framework default use json format to process request and response data
 	// if you want to change the format, you can use the plugin, framework comes with multiple plug-ins
 	// example: use xml format to process request and response data
-	// router.SetEasyHandlePlugins(plugins.XMLRequestHandle, plugins.XMLResponseHandle)
+	/*
+		router := easierweb.New(easierweb.RouterOptions{
+			RequestHandle: plugins.XMLRequestHandle,
+			ResponseHandle: plugins.XMLResponseHandle,
+		})
+	*/
 
 	// set handles
 	router.EasyPOST("/submit", Submit)
