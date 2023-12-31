@@ -28,11 +28,11 @@ go get github.com/dpwgc/easierweb
 ### Framework offers two different styles of use
 
 #### Basic usage: like gin and echo
-#### Easier usage: like spring boot ( more concise way to write API )
+#### Easier usage: like spring boot ( more concise way to write API handle )
 
 ### Basic usage
 
-* api handle function have only one context parameter
+* API handle function have only one context parameter.
 
 ```go
 package main
@@ -68,11 +68,11 @@ func timeCost(ctx *easierweb.Context) {
 }
 ```
 
-* access the http url
+* Access the http url.
 
 > `GET` http://localhost/hello
 
-* you can use the bind function to obtain the request data
+* You can use the bind function to obtain the request data.
 
 ```go
 // struct
@@ -85,7 +85,7 @@ ctx.BindQuery(&request)
 ctx.BindJSON(&request)
 ```
 
-* get the parameters individually
+* Get the parameters individually.
 
 ```go
 // obtain the uri path parameter
@@ -100,8 +100,8 @@ mobile := ctx.Form.Get("mobile")
 
 ### Easier usage
 
-* api handle function has input object and return values
-* easier to write api code, don't need to write logic for binding data and writing response data. framework will help you do this
+* API handle function has input object and return values.
+* More concise way to write API handle, don't need to write logic for binding data and writing response data. framework will help you do this.
 
 ```go
 package main
@@ -144,11 +144,11 @@ type Response struct {
 }
 ```
 
-* request the http post api
+* Invoke http api.
 
 > `POST` http://localhost/submit
 
-* request body
+* Request body.
 
 ```json
 {
@@ -157,9 +157,42 @@ type Response struct {
 }
 ```
 
-* framework default use json format to process request and response data
-* if you want to change the format, you can use the plugin, framework comes with multiple plugins
-* when creating a router, use 'RouterOptions' to set up the plugins
+* If you want to use EasyGET, EasyPOST, EasyPUT... the api handle function must be in the following formats.
+
+```go
+// input: Request
+// output: *Response, error
+func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
+
+// input: Request
+// output: *Response
+func TestAPI(ctx *easierweb.Context, req Request) *Response
+
+// input: Request
+// output: empty
+func TestAPI(ctx *easierweb.Context, req Request)
+
+// input: empty
+// output: *Response, error
+func TestAPI(ctx *easierweb.Context) (*Response, error)
+
+// input: empty
+// output: *Response
+func TestAPI(ctx *easierweb.Context) *Response
+
+// input: empty
+// output: empty
+func TestAPI(ctx *easierweb.Context)
+
+// ----- ----- -----
+
+// set TestAPI handle
+router.EasyPOST("/test", TestAPI)
+```
+
+* Framework default use json format to process request and response data.
+* If you want to change the format, you can use the plugin, framework comes with multiple plugins.
+* When creating a router, use 'RouterOptions' to set up the plugins.
 
 ```go
 // use xml format to process request and response data (global configuration, takes effect for all api)
@@ -169,8 +202,8 @@ router := easierweb.New(easierweb.RouterOptions{
 })
 ```
 
-* if you want to change the request and response format for a single api
-* use 'PluginOptions' to set up the plugins
+* If you want to change the request and response format for a single api.
+* Use 'PluginOptions' to set up the plugins.
 
 ```go
 // use xml format to process request and response data (takes effect only for this api)
@@ -183,6 +216,8 @@ router.EasyGET("/test", test, easierweb.PluginOptions{
 ***
 
 ## Demo program
+
+### If you want to learn more about how to use it, read the demo program
 
 * demo
   * basic `basic usage demo`
