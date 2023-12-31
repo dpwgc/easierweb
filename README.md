@@ -27,8 +27,8 @@ go get github.com/dpwgc/easierweb
 
 ### Framework offers two different styles of use
 
-#### Basic usage: like gin and echo
-#### Easier usage: like spring boot ( more concise way to write API handle )
+#### -> Basic usage: like gin and echo
+#### -> Easier usage: like spring boot ( more concise way to write API handle )
 
 ***
 
@@ -49,8 +49,14 @@ import (
 
 // basic usage example
 func main() {
-   // create a router and started on port 80
-   log.Fatal(easierweb.New().Use(timeCost).GET("/hello", hello).Run(":80"))
+   // create a router
+   router := easierweb.New()
+   // set middleware handle
+   router.Use(timeCost)
+   // set api handle
+   router.GET("/hello", hello)
+   // runs on port 80
+   log.Fatal(router.Run(":80"))
 }
 
 // get handle
@@ -125,9 +131,11 @@ import (
 
 // easier usage example
 func main() {
-   // create a router and set a handle (use function EasyPOST)
-   router := easierweb.New().EasyPOST("/submit", submit)
-   // started on port 80
+   // create a router
+   router := easierweb.New()
+   // set api handle (use function 'EasyPOST')
+   router.EasyPOST("/submit", submit)
+   // runs on port 80
    log.Fatal(router.Run(":80"))
 }
 
@@ -177,7 +185,7 @@ type Response struct {
 }
 ```
 
-* If you want to use EasyGET, EasyPOST, EasyPUT... the api handle function must be in the following formats.
+* If you want to use function 'EasyGET', 'EasyPOST', 'EasyPUT'... the api handle function must be in the following formats.
 
 ```go
 // input: Request
