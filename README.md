@@ -27,8 +27,8 @@ go get github.com/dpwgc/easierweb
 
 ### Framework offers two different styles of use
 
-#### -> Basic usage: like gin and echo
-#### -> Easier usage: like spring boot ( more concise way to write API handle )
+#### `1`  Basic usage: like gin and echo
+#### `2` Easier usage: like spring boot ( more concise way to write API handle )
 
 ***
 
