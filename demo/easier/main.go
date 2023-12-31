@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-// easier demo
+// easier usage demo
 // easier to write api code
 // don't need to write logic for binding data and writing response data. the framework will help you do this
 func main() {
@@ -45,7 +45,7 @@ func Submit(ctx *easierweb.Context, request Request) {
 	// no return value
 }
 
-// GetById get a piece of data based on the id
+// GetById get a piece of data based on id
 // [GET] http://localhost/getById/1
 func GetById(ctx *easierweb.Context) *Response {
 

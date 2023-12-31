@@ -9,16 +9,16 @@ import (
 	"time"
 )
 
-// base demo
+// basic usage demo
 // basic usage, like gin and echo
 // includes common interfaces, websocket connection, file upload and download, static file service, middleware
 func main() {
 
-	// create a router
-	router := easierweb.New()
-
-	// set uri root path
-	router.SetContextPath("/test")
+	// create a router, root path is /test
+	router := easierweb.New(easierweb.RouterOptions{
+		RootPath:               "/test",
+		MultipartFormMaxMemory: 4096,
+	})
 
 	// set middleware
 	router.Use(DemoMiddleware)

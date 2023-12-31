@@ -8,22 +8,26 @@ import (
 	"time"
 )
 
-// full demo
-// a more complete restful example
+// restful demo
+// a more complete example
 func main() {
 
 	// create a router, root path is /api/v2
-	router := easierweb.New().SetContextPath("/api/v2")
+	router := easierweb.New(easierweb.RouterOptions{
+		RootPath: "/api/v2",
+	})
 
 	// use middleware
 	router.Use(timeCost)
 
+	member := app.MemberController{}
+
 	// set methods
-	router.EasyPOST("/member", app.AddMember)
-	router.EasyDELETE("/member/:id", app.DelMember)
-	router.EasyPUT("/member/:id", app.EditMember)
-	router.EasyGET("/member/:id", app.GetMember)
-	router.EasyGET("/members", app.ListMember)
+	router.EasyPOST("/member", member.Add)
+	router.EasyDELETE("/member/:id", member.Del)
+	router.EasyPUT("/member/:id", member.Edit)
+	router.EasyGET("/member/:id", member.Get)
+	router.EasyGET("/members", member.List)
 
 	// started on port 80
 	log.Fatal(router.Run(":80"))

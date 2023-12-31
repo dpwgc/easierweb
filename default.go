@@ -2,6 +2,7 @@ package easierweb
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
@@ -41,7 +42,6 @@ func defaultResponseHandle(ctx *Context, result any, err error) {
 }
 
 func defaultErrorHandle(ctx *Context, err any) {
-	fmt.Println("[ERROR]", ctx.Request.RemoteAddr, "->", ctx.Request.Method, ctx.Request.RequestURI, "::", err)
-	// 返回code=500加异常信息
+	slog.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
 	ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("{\"error\":\"%s\"}", err))
 }

@@ -14,14 +14,13 @@ import (
 )
 
 type Context struct {
-	Header         FormKV
-	Path           FormKV
-	Query          FormKV
-	Form           FormKV
+	Header         Params
+	Path           Params
+	Query          Params
+	Form           Params
 	Body           Data
 	Code           int
 	Result         Data
-	CustomCache    CacheKV
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 	WebsocketConn  *websocket.Conn

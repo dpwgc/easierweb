@@ -7,12 +7,10 @@
 ## Features
 * Easier to handle http request and response.
 * Custom middleware framework.
-* Easier to obtain parameters and bind data.
-* Can auto bind query/form/body data.
-* Easier to write websocket service.
-* Easier to write file services.
-* Centralized error capture.
-* Highly customizable.
+* Easier to obtain parameters and bind data. Can auto bind query/form/body data.
+* Easier to write websocket service and file services.
+* Highly customizable. Custom error capture and request/response data handling.
+* Offers two different styles of use.
 * Support TLS.
 
 ***
@@ -27,14 +25,14 @@ go get github.com/dpwgc/easierweb
 
 ## Example
 
-framework provides two different styles of API code writing
+### Framework offers two different styles of use
 
-* basic
-* easier
+#### `Basic usage`: like gin and echo
+#### `Easier usage`: like spring boot
 
-### Basic API code example
+### Basic usage
 
-* like gin and echo, only one context parameter
+* api handle function have only one context parameter
 
 ```go
 package main
@@ -47,19 +45,10 @@ import (
    "time"
 )
 
-// basic example
+// basic usage example
 func main() {
    // create a router and started on port 80
-   log.Fatal(easierweb.New().Use(timeCost).GET("/", hello).Run(":80"))
-}
-
-// middleware handle
-func timeCost(ctx *easierweb.Context) {
-   start := time.Now().UnixMilli()
-   // next handle
-   ctx.Next()
-   end := time.Now().UnixMilli()
-   fmt.Printf("time cost: %vms\n", end-start)
+   log.Fatal(easierweb.New().Use(timeCost).GET("/hello", hello).Run(":80"))
 }
 
 // get handle
@@ -68,9 +57,22 @@ func hello(ctx *easierweb.Context) {
    // Write response
    ctx.WriteString(http.StatusOK, "hello")
 }
+
+// middleware handle
+func timeCost(ctx *easierweb.Context) {
+  start := time.Now().UnixMilli()
+  // next handle
+  ctx.Next()
+  end := time.Now().UnixMilli()
+  fmt.Printf("time cost: %vms\n", end-start)
+}
 ```
 
-* you can use the bind method to obtain the request data
+* access the http url
+
+> `GET` http://localhost/hello
+
+* you can use the bind function to obtain the request data
 
 ```go
 // struct
@@ -83,6 +85,8 @@ ctx.BindQuery(&request)
 ctx.BindJSON(&request)
 ```
 
+* get the parameters individually
+
 ```go
 // obtain the uri path parameter
 id := ctx.Path.Int64("id")
@@ -94,9 +98,9 @@ name := ctx.Path.Get("name")
 mobile := ctx.Form.Get("mobile")
 ```
 
-### Easier API code example
+### Easier usage
 
-* like spring boot, has input object and return values
+* api handle function has input object and return values
 * easier to write api code, don't need to write logic for binding data and writing response data. framework will help you do this
 
 ```go
@@ -108,18 +112,18 @@ import (
    "log"
 )
 
-// easier example
+// easier usage example
 func main() {
-   // create a router and set a handle
-   router := easierweb.New().EasyPOST("/", hello)
+   // create a router and set a handle (use function EasyPOST)
+   router := easierweb.New().EasyPOST("/submit", submit)
    // started on port 80
    log.Fatal(router.Run(":80"))
 }
 
 // post request handle
-func hello(ctx *easierweb.Context, request Request) *Response {
+func submit(ctx *easierweb.Context, req Request) *Response {
    // print the request data
-   fmt.Printf("post request data (json body) -> name: %s, mobile: %s \n", request.Name, request.Mobile)
+   fmt.Printf("post request data (json body) -> name: %s, mobile: %s \n", req.Name, req.Mobile)
    // return result
    return &Response{
       Code: 1000,
@@ -140,17 +144,33 @@ type Response struct {
 }
 ```
 
+* request the http post api
+
+> `POST` http://localhost/submit
+
+* request body
+
+```json
+{
+  "name": "hello",
+  "mobile": "12345678"
+}
+```
+
 * framework default use json format to process request and response data
-* if you want to change the format, you can use the plugin, framework comes with multiple plug-ins
-* use method 'SetEasyHandlePlugins' to set up the plug-ins
+* if you want to change the format, you can use the plugin, framework comes with multiple plugins
+* when creating a router, use 'RouterOptions' to set up the plugins
 
 ```go
 // use xml format to process request and response data (global configuration, takes effect for all api)
-router.SetEasyHandlePlugins(plugins.XMLRequestHandle, plugins.XMLResponseHandle)
+router := easierweb.New(easierweb.RouterOptions{
+   RequestHandle: plugins.XMLRequestHandle,
+   ResponseHandle: plugins.XMLResponseHandle,
+})
 ```
 
 * if you want to change the request and response format for a single api
-* use method 'ReEasyGET' to set up the path, handle and plug-ins
+* use function 'ReEasyGET', 'ReEasyPOST', 'ReEasyPUT'... to set up the path, handle and plugins
 
 ```go
 // use xml format to process request and response data (takes effect only for this api)
@@ -159,7 +179,7 @@ router.ReEasyGET("/test", TestHandle, plugins.XMLRequestHandle, plugins.XMLRespo
 
 ***
 
-### Demo program
+## Demo program
 
 * demo
   * base `basic usage demo`

@@ -13,8 +13,17 @@ import (
 	"strings"
 )
 
+type RouterOptions struct {
+	RootPath               string
+	MultipartFormMaxMemory int64
+	ErrorHandle            ErrorHandle
+	RequestHandle          RequestHandle
+	ResponseHandle         ResponseHandle
+	CloseConsolePrint      bool
+}
+
 type Router struct {
-	contextPath            string
+	rootPath               string
 	multipartFormMaxMemory int64
 	router                 *httprouter.Router
 	server                 http.Server
@@ -22,11 +31,10 @@ type Router struct {
 	errorHandle            ErrorHandle
 	requestHandle          RequestHandle
 	responseHandle         ResponseHandle
+	closeConsolePrint      bool
 }
 
 type Handle func(ctx *Context)
-
-type EasyHandle func(ctx *Context, reqObj any) (any, error)
 
 type RequestHandle func(ctx *Context, reqObj any) error
 
@@ -34,35 +42,34 @@ type ResponseHandle func(ctx *Context, result any, err error)
 
 type ErrorHandle func(ctx *Context, err any)
 
-func New() *Router {
-	return &Router{
-		contextPath:            "",
+func New(opts ...RouterOptions) *Router {
+	r := &Router{
 		multipartFormMaxMemory: 1024,
 		router:                 httprouter.New(),
 		errorHandle:            defaultErrorHandle,
 		requestHandle:          defaultRequestHandle,
 		responseHandle:         defaultResponseHandle,
 	}
-}
-
-func (r *Router) SetErrorHandle(errorHandle ErrorHandle) *Router {
-	r.errorHandle = errorHandle
-	return r
-}
-
-func (r *Router) SetContextPath(contextPath string) *Router {
-	r.contextPath = contextPath
-	return r
-}
-
-func (r *Router) SetMultipartFormMaxMemory(maxMemory int64) *Router {
-	r.multipartFormMaxMemory = maxMemory
-	return r
-}
-
-func (r *Router) SetEasyHandlePlugins(requestHandle RequestHandle, responseHandle ResponseHandle) *Router {
-	r.requestHandle = requestHandle
-	r.responseHandle = responseHandle
+	if len(opts) > 0 {
+		for _, v := range opts {
+			if v.RootPath != "" {
+				r.rootPath = v.RootPath
+			}
+			if v.MultipartFormMaxMemory > 0 {
+				r.multipartFormMaxMemory = v.MultipartFormMaxMemory
+			}
+			if v.ErrorHandle != nil {
+				r.errorHandle = v.ErrorHandle
+			}
+			if v.RequestHandle != nil {
+				r.requestHandle = v.RequestHandle
+			}
+			if v.ResponseHandle != nil {
+				r.responseHandle = v.ResponseHandle
+			}
+			r.closeConsolePrint = v.CloseConsolePrint
+		}
+	}
 	return r
 }
 
@@ -129,56 +136,56 @@ func (r *Router) ReEasyDELETE(path string, easyHandle any, requestHandle Request
 // --
 
 func (r *Router) GET(path string, handle Handle) *Router {
-	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.GET(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) HEAD(path string, handle Handle) *Router {
-	r.router.HEAD(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.HEAD(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) OPTIONS(path string, handle Handle) *Router {
-	r.router.OPTIONS(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.OPTIONS(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) POST(path string, handle Handle) *Router {
-	r.router.POST(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.POST(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) PUT(path string, handle Handle) *Router {
-	r.router.PUT(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.PUT(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) PATCH(path string, handle Handle) *Router {
-	r.router.PATCH(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.PATCH(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) DELETE(path string, handle Handle) *Router {
-	r.router.DELETE(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.DELETE(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) WS(path string, handle Handle) *Router {
-	r.router.GET(r.contextPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	r.router.GET(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
 			Handler: func(ws *websocket.Conn) {
 				r.handle(handle, res, req, par, ws)
@@ -197,7 +204,7 @@ func (r *Router) Static(path, dir string) *Router {
 }
 
 func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
-	r.router.ServeFiles(r.contextPath+path, fs)
+	r.router.ServeFiles(r.rootPath+path, fs)
 	return r
 }
 
@@ -207,7 +214,7 @@ func (r *Router) Use(middlewares ...Handle) *Router {
 }
 
 func (r *Router) CustomHandle(method, path string, handle httprouter.Handle) *Router {
-	r.router.Handle(method, r.contextPath+path, handle)
+	r.router.Handle(method, r.rootPath+path, handle)
 	return r
 }
 
@@ -243,7 +250,6 @@ func (r *Router) newContext(res http.ResponseWriter, req *http.Request, par http
 		Path:           map[string]string{},
 		Query:          map[string]string{},
 		Form:           map[string]string{},
-		CustomCache:    make(map[string]any),
 		Request:        req,
 		ResponseWriter: res,
 		WebsocketConn:  ws,
@@ -422,6 +428,9 @@ func (r *Router) errorBottomUp(ctx *Context, err any) {
 }
 
 func (r *Router) consoleStartPrint(addr string) {
+	if r.closeConsolePrint {
+		return
+	}
 	fmt.Println("  ______          _        __          __  _     \n |  ____|        (_)       \\ \\        / / | |    \n | |__   __ _ ___ _  ___ _ _\\ \\  /\\  / /__| |__  \n |  __| / _` / __| |/ _ \\ '__\\ \\/  \\/ / _ \\ '_ \\ \n | |___| (_| \\__ \\ |  __/ |   \\  /\\  /  __/ |_) |\n |______\\__,_|___/_|\\___|_|    \\/  \\/ \\___|_.__/")
-	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf(" >>> http server started on [%s] ", addr))
+	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf(" >>> http server runs on [%s] ", addr))
 }

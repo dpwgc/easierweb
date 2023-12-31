@@ -2,9 +2,11 @@ package app
 
 import "github.com/dpwgc/easierweb"
 
+type MemberController struct{}
+
 var memberService MemberService
 
-// AddMember create
+// Add create
 // [POST] http://localhost/api/v2/member
 /*
 body:
@@ -14,17 +16,17 @@ body:
   "weight": 10.24
 }
 */
-func AddMember(ctx *easierweb.Context, command MemberCommand) (*MemberDTO, error) {
+func (c *MemberController) Add(ctx *easierweb.Context, command MemberCommand) (*MemberDTO, error) {
 	return memberService.Add(command)
 }
 
-// DelMember delete
+// Del delete
 // [DELETE] http://localhost/api/v2/member/1
-func DelMember(ctx *easierweb.Context) {
+func (c *MemberController) Del(ctx *easierweb.Context) {
 	memberService.Del(ctx.Path.Int64("id"))
 }
 
-// EditMember update
+// Edit update
 // [PUT] http://localhost/api/v2/member/1
 /*
 body:
@@ -34,18 +36,18 @@ body:
   "weight": 20.48
 }
 */
-func EditMember(ctx *easierweb.Context, command MemberCommand) {
+func (c *MemberController) Edit(ctx *easierweb.Context, command MemberCommand) {
 	memberService.Edit(ctx.Path.Int64("id"), command)
 }
 
-// GetMember select one
+// Get select one
 // [GET] http://localhost/api/v2/member/1
-func GetMember(ctx *easierweb.Context) *MemberDTO {
+func (c *MemberController) Get(ctx *easierweb.Context) *MemberDTO {
 	return memberService.Get(ctx.Path.Int64("id"))
 }
 
-// ListMember select more
+// List select more
 // [GET] http://localhost/api/v2/members?name=hello&mobile=12345678
-func ListMember(ctx *easierweb.Context, query MemberQuery) *[]MemberDTO {
+func (c *MemberController) List(ctx *easierweb.Context, query MemberQuery) *[]MemberDTO {
 	return memberService.List(query)
 }
