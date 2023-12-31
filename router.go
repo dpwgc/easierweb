@@ -106,6 +106,10 @@ func (r *Router) EasyDELETE(path string, easyHandle any, opts ...PluginOptions) 
 	return r.DELETE(path, r.easyHandle2handle(easyHandle, opts))
 }
 
+func (r *Router) EasyAny(path string, easyHandle any, opts ...PluginOptions) *Router {
+	return r.Any(path, r.easyHandle2handle(easyHandle, opts))
+}
+
 // basic usage function
 
 func (r *Router) GET(path string, handle Handle) *Router {
@@ -157,6 +161,17 @@ func (r *Router) DELETE(path string, handle Handle) *Router {
 	return r
 }
 
+func (r *Router) Any(path string, handle Handle) *Router {
+	r.GET(path, handle)
+	r.HEAD(path, handle)
+	r.OPTIONS(path, handle)
+	r.POST(path, handle)
+	r.PUT(path, handle)
+	r.PATCH(path, handle)
+	r.DELETE(path, handle)
+	return r
+}
+
 func (r *Router) WS(path string, handle Handle) *Router {
 	r.router.GET(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
@@ -183,11 +198,6 @@ func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
 
 func (r *Router) Use(middlewares ...Handle) *Router {
 	r.middlewares = append(r.middlewares, middlewares...)
-	return r
-}
-
-func (r *Router) CustomHandle(method, path string, handle httprouter.Handle) *Router {
-	r.router.Handle(method, r.rootPath+path, handle)
 	return r
 }
 

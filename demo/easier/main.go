@@ -15,7 +15,7 @@ func main() {
 	router := easierweb.New()
 
 	// the framework default use json format to process request and response data
-	// if you want to change the format, you can use the plugin, framework comes with multiple plug-ins
+	// if you want to change the format, you can use the plugin, framework comes with multiple plugins
 	// example: use xml format to process request and response data
 	/*
 		router := easierweb.New(easierweb.RouterOptions{

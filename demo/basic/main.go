@@ -136,7 +136,7 @@ func DemoWS(ctx *easierweb.Context) {
 
 		time.Sleep(3 * time.Second)
 
-		// when the function returns, the connection is automatically closed
+		// when the function return, the connection is automatically closed
 		return
 	}
 }
@@ -149,7 +149,7 @@ func DemoUpload(ctx *easierweb.Context) {
 	// get the keys for all form files
 	fmt.Println("file keys:", ctx.FileKeys())
 
-	// 获取表单文件
+	// get the file
 	file, err := ctx.GetFile("file")
 	if err != nil {
 		panic(err)
@@ -176,8 +176,8 @@ func DemoUpload(ctx *easierweb.Context) {
 func DemoDownload(ctx *easierweb.Context) {
 
 	// get the local file and return file data
-	// If the contentType parameter is not specified, application/octet-stream is the default
-	// If the fileName parameter is not specified, the file name is a timestamp by default
+	// if the contentType parameter is not specified, application/octet-stream is the default
+	// if the fileName parameter is not specified, the file name is a timestamp by default
 	ctx.WriteLocalFile("", ctx.Path.Get("fileName"), ctx.Path.Get("fileName"))
 
 	// returns the byte data of the file directly

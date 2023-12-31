@@ -1,16 +1,16 @@
 # EasierWeb
 
-## A minimalist Go web framework based on httprouter
+## A more user-friendly, highly customizable Go Web framework
+
+### Based on httprouter
 
 ***
 
 ## Features
-* Easier to handle http request and response.
-* Custom middleware framework.
 * Easier to obtain parameters and bind data. Can auto bind query/form/body data.
-* Easier to write websocket service and file services.
-* Highly customizable. Custom error capture and request/response data handling.
-* Offers two different styles of use.
+* Offers two different styles of use. Have a more concise way to write API.
+* Highly customizable. Custom error capture and request/response data handling. Custom middleware.
+* Easier to write websocket service and file service.
 * Support TLS.
 
 ***
@@ -27,8 +27,8 @@ go get github.com/dpwgc/easierweb
 
 ### Framework offers two different styles of use
 
-#### `Basic usage`: like gin and echo
-#### `Easier usage`: like spring boot
+#### Basic usage: like gin and echo
+#### Easier usage: like spring boot ( more concise way to write API )
 
 ### Basic usage
 
@@ -185,7 +185,7 @@ router.EasyGET("/test", test, easierweb.PluginOptions{
 ## Demo program
 
 * demo
-  * base `basic usage demo`
+  * basic `basic usage demo`
     * main.go
   * easier `easier usage demo`
     * main.go
