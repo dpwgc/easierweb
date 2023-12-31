@@ -30,9 +30,11 @@ go get github.com/dpwgc/easierweb
 #### Basic usage: like gin and echo
 #### Easier usage: like spring boot ( more concise way to write API handle )
 
+***
+
 ### Basic usage
 
-* API handle function have only one context parameter.
+#### API handle function have only one context parameter
 
 ```go
 package main
@@ -54,7 +56,7 @@ func main() {
 // get handle
 func hello(ctx *easierweb.Context) {
    time.Sleep(1 * time.Second)
-   // Write response
+   // Write response, return 'hello'
    ctx.WriteString(http.StatusOK, "hello")
 }
 
@@ -68,9 +70,15 @@ func timeCost(ctx *easierweb.Context) {
 }
 ```
 
-* Access the http url.
+#### Access the http url
 
 > `GET` http://localhost/hello
+
+#### Response data
+
+```
+hello
+```
 
 * You can use the bind function to obtain the request data.
 
@@ -98,10 +106,13 @@ name := ctx.Path.Get("name")
 mobile := ctx.Form.Get("mobile")
 ```
 
+***
+
 ### Easier usage
 
-* API handle function has input object and return values.
-* More concise way to write API handle, don't need to write logic for binding data and writing response data. framework will help you do this.
+#### API handle function has input object and return values
+
+#### More concise way to write API handle, don't need to write logic for binding data and writing response data. framework will help you do this
 
 ```go
 package main
@@ -144,16 +155,25 @@ type Response struct {
 }
 ```
 
-* Invoke http api.
+#### Invoke http api
 
 > `POST` http://localhost/submit
 
-* Request body.
+#### Request body
 
 ```json
 {
   "name": "hello",
   "mobile": "12345678"
+}
+```
+
+#### Response data
+
+```json
+{
+  "code": 1000,
+  "msg": "hello"
 }
 ```
 
