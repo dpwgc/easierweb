@@ -190,5 +190,4 @@ router.EasyGET("/test", test, easierweb.PluginOptions{
   * easier `easier usage demo`
     * main.go
   * restful `restful application demo`
-    * app
     * main.go
