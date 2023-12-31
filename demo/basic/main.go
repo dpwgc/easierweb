@@ -40,7 +40,7 @@ func main() {
 }
 
 // DemoGet get request handle
-// http://127.0.0.1:8082/test/demoGet/123?type=1&price=10.24&name=dpwgc
+// http://localhost/test/demoGet/123?type=1&price=10.24&name=dpwgc
 func DemoGet(ctx *easierweb.Context) {
 
 	// print uri path parameter
@@ -72,7 +72,7 @@ func DemoGet(ctx *easierweb.Context) {
 }
 
 // DemoPost post request handle
-// http://127.0.0.1:8082/test/demoPost
+// http://localhost/test/demoPost
 /*
 {
   "id": 123,
@@ -107,7 +107,7 @@ func DemoPost(ctx *easierweb.Context) {
 }
 
 // DemoWS websocket connection handle
-// ws://127.0.0.1:8082/test/demoWS/123
+// ws://localhost/test/demoWS/123
 func DemoWS(ctx *easierweb.Context) {
 
 	// print the uri parameter
@@ -142,7 +142,7 @@ func DemoWS(ctx *easierweb.Context) {
 }
 
 // DemoUpload file upload handle
-// http://127.0.0.1:8082/test/demoUpload
+// http://localhost/test/demoUpload
 // form parameters: file=demo.txt(file)
 func DemoUpload(ctx *easierweb.Context) {
 
@@ -171,7 +171,7 @@ func DemoUpload(ctx *easierweb.Context) {
 }
 
 // DemoDownload file download handle
-// http://127.0.0.1:8082/test/demoDownload/README.md
+// http://localhost/test/demoDownload/README.md
 // download the specified file in the directory where the service is running
 func DemoDownload(ctx *easierweb.Context) {
 

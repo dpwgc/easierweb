@@ -85,7 +85,7 @@ func (r *Router) buildContext(res http.ResponseWriter, req *http.Request, par ht
 
 func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
 
-	ctx, err := r.buildContext(res, req, par, nil)
+	ctx, err := r.buildContext(res, req, par, ws)
 
 	defer func() {
 		sErr := recover()
