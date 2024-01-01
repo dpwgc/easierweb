@@ -1,6 +1,6 @@
 # EasierWeb
 
-## A more user-friendly, highly customizable Go Web framework
+## A more user-friendly, high performance, high customizable Go Web framework
 
 ### Based on [httprouter](https://github.com/julienschmidt/httprouter)
 
