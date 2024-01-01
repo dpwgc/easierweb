@@ -2,7 +2,7 @@
 
 ## A more user-friendly, highly customizable Go Web framework
 
-### Based on [httprouter](https://github.com/julienschmidt/httprouter)
+### Based on [httprouter](https://github.com/julienschmidt/httprouter) and [mapstructure](https://github.com/mitchellh/mapstructure)
 
 ***
 
@@ -80,8 +80,14 @@ func hello(ctx *easierweb.Context) {
 // struct
 request := Request{}
 
-// bind uri query parameters
+// bind uri query parameters (based on mapstructure)
 ctx.BindQuery(&request)
+
+// bind uri path parameters (based on mapstructure)
+ctx.BindPath(&request)
+
+// bind post form parameters (based on mapstructure)
+ctx.BindForm(&request)
 
 // bind json body data
 ctx.BindJSON(&request)

@@ -233,10 +233,10 @@ func simpleTestHttpClient(method, uri, body string) {
 }
 
 type simpleTestDTO struct {
-	Int     int     `json:"int" schema:"int"`
-	Int32   int32   `json:"int32" schema:"int32"`
-	Int64   int64   `json:"int64" schema:"int64"`
-	String  string  `json:"string" schema:"string"`
-	Float32 float32 `json:"float32" schema:"float32"`
-	Float64 float32 `json:"float64" schema:"float64"`
+	Int     int     `json:"int" mapstructure:"int"`
+	Int32   int32   `json:"int32" mapstructure:"int32"`
+	Int64   int64   `json:"int64" mapstructure:"int64"`
+	String  string  `json:"string" mapstructure:"string"`
+	Float32 float32 `json:"float32" mapstructure:"float32"`
+	Float64 float32 `json:"float64" mapstructure:"float64"`
 }

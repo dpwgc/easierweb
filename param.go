@@ -3,6 +3,7 @@ package easierweb
 import (
 	"encoding/json"
 	"encoding/xml"
+	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
 	"strconv"
 )
@@ -149,6 +150,17 @@ func (kv Params) ParseFloat32(key string) (float32, error) {
 
 func (kv Params) ParseFloat64(key string) (float64, error) {
 	return strconv.ParseFloat(kv.Get(key), 64)
+}
+
+func (kv Params) Bind(obj any) error {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		WeaklyTypedInput: true,
+		Result:           obj,
+	})
+	if err != nil {
+		return err
+	}
+	return decoder.Decode(kv)
 }
 
 type Data []byte

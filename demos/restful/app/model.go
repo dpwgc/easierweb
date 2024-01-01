@@ -9,8 +9,8 @@ type MemberCommand struct {
 
 // MemberQuery list query request params
 type MemberQuery struct {
-	Name   string `schema:"name"`
-	Mobile string `schema:"mobile"`
+	Name   string `mapstructure:"name"`
+	Mobile string `mapstructure:"mobile"`
 }
 
 // MemberDTO get or list response object

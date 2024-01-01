@@ -44,7 +44,7 @@ body:
 */
 func Submit(ctx *easierweb.Context, request Request) {
 
-	// print the request data
+	// print the post request body data
 	fmt.Printf("post request data (json body) -> name: %s, mobile: %s \n", request.Name, request.Mobile)
 
 	// no return value
@@ -54,7 +54,7 @@ func Submit(ctx *easierweb.Context, request Request) {
 // [GET] http://localhost/getById/1
 func GetById(ctx *easierweb.Context) *Response {
 
-	// print the path parameter
+	// print the uri path parameter
 	fmt.Printf("path parameter -> id: %v", ctx.Path.Int64("id"))
 
 	// return result
@@ -69,7 +69,7 @@ func GetById(ctx *easierweb.Context) *Response {
 // [GET] http://localhost/searchByParams?name=hello&mobile=12345678
 func SearchByParams(ctx *easierweb.Context, request Request) *[]Response {
 
-	// print the get request data
+	// print the uri query parameters
 	fmt.Printf("get request data (uri query parameters) -> name: %s, mobile: %s \n", request.Name, request.Mobile)
 
 	// build a list of results
@@ -90,10 +90,10 @@ func SearchByParams(ctx *easierweb.Context, request Request) *[]Response {
 
 // Request if you want to use the bind data feature, you need to configure the tag to get the field mapping
 // when parsing json body data, use json tag
-// when parsing uri query parameters data, use schema tag
+// when parsing query/path/form parameters data, use mapstructure tag
 type Request struct {
-	Name   string `json:"name" schema:"name"`
-	Mobile string `json:"mobile" schema:"mobile"`
+	Name   string `json:"name" mapstructure:"name"`
+	Mobile string `json:"mobile" mapstructure:"mobile"`
 }
 
 // Response result data

@@ -209,11 +209,11 @@ type DemoCommand struct {
 // DemoQuery query request
 // if you want to use the bind data feature, you need to configure the tag to get the field mapping
 // when parsing json body data, use json tag
-// when parsing uri query parameters data, use schema tag
+// when parsing query/path/form parameters data, use mapstructure tag
 type DemoQuery struct {
-	Type  int     `schema:"type"`
-	Price float64 `schema:"price"`
-	Name  string  `schema:"name"`
+	Type  int     `mapstructure:"type"`
+	Price float64 `mapstructure:"price"`
+	Name  string  `mapstructure:"name"`
 }
 
 // DemoResultDTO result data

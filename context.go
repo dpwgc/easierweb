@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/gorilla/schema"
 	"golang.org/x/net/websocket"
 	"gopkg.in/yaml.v3"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -60,16 +60,18 @@ func (c *Context) GetFile(key string) (multipart.File, error) {
 	return file, nil
 }
 
-// Params Bind
-
-var decoder = schema.NewDecoder()
+// Query/Form/Path Params Bind
 
 func (c *Context) BindQuery(obj any) error {
-	return decoder.Decode(obj, c.Request.URL.Query())
+	return c.Query.Bind(obj)
 }
 
 func (c *Context) BindForm(obj any) error {
-	return decoder.Decode(obj, c.Request.PostForm)
+	return c.Form.Bind(obj)
+}
+
+func (c *Context) BindPath(obj any) error {
+	return c.Path.Bind(obj)
 }
 
 // POST Body Bind
@@ -254,4 +256,30 @@ func (c *Context) Send(msg []byte) error {
 		return err
 	}
 	return nil
+}
+
+// Other
+
+func (c *Context) URI() string {
+	return c.Request.RequestURI
+}
+
+func (c *Context) Method() string {
+	return c.Request.Method
+}
+
+func (c *Context) URL() *url.URL {
+	return c.Request.URL
+}
+
+func (c *Context) RemoteAddr() string {
+	return c.Request.RemoteAddr
+}
+
+func (c *Context) Host() string {
+	return c.Request.Host
+}
+
+func (c *Context) Proto() string {
+	return c.Request.Proto
 }
