@@ -172,6 +172,10 @@ func (c *Context) SetHeader(key, value string) {
 	c.ResponseWriter.Header().Set(key, value)
 }
 
+func (c *Context) AddHeader(key, value string) {
+	c.ResponseWriter.Header().Add(key, value)
+}
+
 // WS Receive
 
 func (c *Context) ReceiveJSON(obj any) error {

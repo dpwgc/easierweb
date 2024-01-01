@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
-	"github.com/dpwgc/easierweb/demo/restful/app"
+	"github.com/dpwgc/easierweb/demos/restful/app"
 	"log"
 	"time"
 )
