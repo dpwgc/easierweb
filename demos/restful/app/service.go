@@ -9,7 +9,7 @@ type MemberService struct{}
 
 // Add create
 func (s *MemberService) Add(command MemberCommand) (*MemberDTO, error) {
-	fmt.Printf("[AddMember] name: %s, mobile: %s, weight: %v \n", command.Name, command.Mobile, command.Weight)
+	fmt.Printf("[Add] name: %s, mobile: %s, weight: %v \n", command.Name, command.Mobile, command.Weight)
 	time.Sleep(100 * time.Millisecond)
 	return &MemberDTO{
 		ID:     1,
@@ -20,19 +20,19 @@ func (s *MemberService) Add(command MemberCommand) (*MemberDTO, error) {
 
 // Del delete
 func (s *MemberService) Del(id int64) {
-	fmt.Printf("[DelMember] id: %v \n", id)
+	fmt.Printf("[Del] id: %v \n", id)
 	time.Sleep(100 * time.Millisecond)
 }
 
 // Edit update
 func (s *MemberService) Edit(id int64, command MemberCommand) {
-	fmt.Printf("[EditMember] id: %v, name: %s, mobile: %s, weight: %v \n", id, command.Name, command.Mobile, command.Weight)
+	fmt.Printf("[Edit] id: %v, name: %s, mobile: %s, weight: %v \n", id, command.Name, command.Mobile, command.Weight)
 	time.Sleep(100 * time.Millisecond)
 }
 
 // Get select one
 func (s *MemberService) Get(id int64) *MemberDTO {
-	fmt.Printf("[GetMember] id: %v \n", id)
+	fmt.Printf("[Get] id: %v \n", id)
 	time.Sleep(100 * time.Millisecond)
 	return &MemberDTO{
 		ID:     1,
@@ -43,7 +43,7 @@ func (s *MemberService) Get(id int64) *MemberDTO {
 
 // List select more
 func (s *MemberService) List(query MemberQuery) *[]MemberDTO {
-	fmt.Printf("[ListMember] name: %s, mobile: %v \n", query.Name, query.Mobile)
+	fmt.Printf("[List] name: %s, mobile: %v \n", query.Name, query.Mobile)
 	time.Sleep(100 * time.Millisecond)
 	var list []MemberDTO
 	list = append(list, MemberDTO{

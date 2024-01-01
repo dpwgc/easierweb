@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+// default function
+
 func defaultRequestHandle(ctx *Context, reqObj any) error {
 	if len(ctx.Form) > 0 {
 		err := ctx.BindForm(reqObj)

@@ -10,9 +10,10 @@ import (
 	"strings"
 )
 
-func (r *Router) buildContext(res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) (*Context, error) {
+func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) (*Context, error) {
 
 	ctx := Context{
+		Route:          route,
 		index:          0,
 		handles:        append([]Handle(nil), r.middlewares...),
 		Header:         map[string]string{},
@@ -83,9 +84,9 @@ func (r *Router) buildContext(res http.ResponseWriter, req *http.Request, par ht
 	return &ctx, nil
 }
 
-func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
+func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
 
-	ctx, err := r.buildContext(res, req, par, ws)
+	ctx, err := r.buildContext(route, res, req, par, ws)
 
 	defer func() {
 		sErr := recover()
@@ -98,7 +99,7 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 		panic(err)
 	}
 
-	// 中间件
+	// middleware execution
 	if len(r.middlewares) > 0 {
 		ctx.handles = append(ctx.handles, handle)
 		for ctx.index < len(ctx.handles) {
@@ -109,7 +110,7 @@ func (r *Router) handle(handle Handle, res http.ResponseWriter, req *http.Reques
 		handle(ctx)
 	}
 
-	// 如果ws存在，自动关闭ws连接
+	// if a websocket connection exists, the websocket connection is automatically closed when the function returns
 	if ws != nil {
 		err = ws.Close()
 		if err != nil {
@@ -126,7 +127,7 @@ func (r *Router) buildHandle(easyHandle any, opts []PluginOptions) Handle {
 			requestHandle = v.RequestHandle
 			responseHandle = v.ResponseHandle
 		}
-		// 如果为空
+		// verify
 		if requestHandle == nil {
 			if r.requestHandle == nil {
 				panic(errors.New("request handle is empty"))
@@ -139,14 +140,14 @@ func (r *Router) buildHandle(easyHandle any, opts []PluginOptions) Handle {
 			}
 			responseHandle = r.responseHandle
 		}
-		// 反射获取函数类型
+		// reflection gets the type of function
 		funcType := reflect.TypeOf(easyHandle)
 
-		// 创建参数值的切片
+		// create a slice of the parameter value
 		var paramValues []reflect.Value
 
 		var reqObj any = nil
-		// 如果没有第二个参数，就不进行自动绑定了
+		// if there is no second parameter, there is no auto-binding
 		if funcType.NumIn() == 1 {
 			paramValues = make([]reflect.Value, 1)
 			paramValues[0] = reflect.ValueOf(ctx).Elem().Addr()
@@ -166,16 +167,16 @@ func (r *Router) buildHandle(easyHandle any, opts []PluginOptions) Handle {
 			}
 		}
 
-		// 调用函数
+		// call the function
 		returnValues := reflect.ValueOf(easyHandle).Call(paramValues)
 
-		// 无对象返回，无错误返回
+		// no object return, no error return
 		if len(returnValues) == 0 {
 			responseHandle(ctx, nil, nil)
 			return
 		}
 
-		// 处理返回值
+		// process the return value
 		var resultValue any
 		if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
 			resultValue = returnValues[0].Elem().Interface()
@@ -183,13 +184,13 @@ func (r *Router) buildHandle(easyHandle any, opts []PluginOptions) Handle {
 			resultValue = returnValues[0].Interface()
 		}
 
-		// 无错误返回
+		// no errors are returned
 		if len(returnValues) == 1 {
 			responseHandle(ctx, resultValue, nil)
 			return
 		}
 
-		// 有对象返回，有错误返回
+		// has object return and error return
 		errValue, _ := returnValues[1].Interface().(error)
 		responseHandle(ctx, resultValue, errValue)
 	}

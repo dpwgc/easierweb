@@ -109,50 +109,57 @@ func (r *Router) EasyAny(path string, easyHandle any, opts ...PluginOptions) *Ro
 // basic usage function
 
 func (r *Router) GET(path string, handle Handle) *Router {
-	r.router.GET(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.GET(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) HEAD(path string, handle Handle) *Router {
-	r.router.HEAD(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.HEAD(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) OPTIONS(path string, handle Handle) *Router {
-	r.router.OPTIONS(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.OPTIONS(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) POST(path string, handle Handle) *Router {
-	r.router.POST(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.POST(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) PUT(path string, handle Handle) *Router {
-	r.router.PUT(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.PUT(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) PATCH(path string, handle Handle) *Router {
-	r.router.PATCH(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.PATCH(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
 
 func (r *Router) DELETE(path string, handle Handle) *Router {
-	r.router.DELETE(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(handle, res, req, par, nil)
+	route := r.rootPath + path
+	r.router.DELETE(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil)
 	})
 	return r
 }
@@ -169,10 +176,11 @@ func (r *Router) Any(path string, handle Handle) *Router {
 }
 
 func (r *Router) WS(path string, handle Handle) *Router {
-	r.router.GET(r.rootPath+path, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+	route := r.rootPath + path
+	r.router.GET(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
 			Handler: func(ws *websocket.Conn) {
-				r.handle(handle, res, req, par, ws)
+				r.handle(route, handle, res, req, par, ws)
 			},
 			Handshake: func(config *websocket.Config, req *http.Request) error {
 				// 解决跨域
@@ -188,7 +196,8 @@ func (r *Router) Static(path, dir string) *Router {
 }
 
 func (r *Router) StaticFS(path string, fs http.FileSystem) *Router {
-	r.router.ServeFiles(r.rootPath+path, fs)
+	route := r.rootPath + path
+	r.router.ServeFiles(route, fs)
 	return r
 }
 

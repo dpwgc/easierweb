@@ -69,6 +69,7 @@ func TestRouterSimple(t *testing.T) {
 
 // middleware
 func simpleTestMiddleware(ctx *Context) {
+	fmt.Println("[TestRouterSimple](simpleTestMiddleware) route ->", ctx.Route)
 	fmt.Println("[TestRouterSimple](simpleTestMiddleware) before ->", time.Now().UnixMilli())
 	ctx.Next()
 	fmt.Println("[TestRouterSimple](simpleTestMiddleware) after ->", time.Now().UnixMilli())

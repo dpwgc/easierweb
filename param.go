@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-// 表单参数
+// query/path/form parameters
 
 type Params map[string]string
 

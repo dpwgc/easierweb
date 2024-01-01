@@ -14,6 +14,7 @@ import (
 )
 
 type Context struct {
+	Route          string
 	Header         Params
 	Path           Params
 	Query          Params
@@ -258,7 +259,15 @@ func (c *Context) Send(msg []byte) error {
 	return nil
 }
 
-// Other
+// Other request parameters
+
+func (c *Context) GetCookie(name string) (*http.Cookie, error) {
+	return c.Request.Cookie(name)
+}
+
+func (c *Context) Cookies() []*http.Cookie {
+	return c.Request.Cookies()
+}
 
 func (c *Context) URI() string {
 	return c.Request.RequestURI

@@ -2,7 +2,7 @@
 
 ## A more user-friendly, highly customizable Go Web framework
 
-### Based on [httprouter](https://github.com/julienschmidt/httprouter) and [mapstructure](https://github.com/mitchellh/mapstructure)
+### Based on [httprouter](https://github.com/julienschmidt/httprouter)
 
 ***
 
