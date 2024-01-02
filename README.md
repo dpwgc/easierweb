@@ -181,7 +181,7 @@ type Response struct {
 
 ### Other notes
 
-* If you want to use function 'EasyGET', 'EasyPOST', 'EasyPUT'... the api handle function must be in the following formats.
+* If you want to use function 'EasyGET', 'EasyPOST', 'EasyPUT'... the api handle function must be in the following formats. (request struct and response struct can be slices)
 
 ```go
 // input: Request
