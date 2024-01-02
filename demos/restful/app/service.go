@@ -25,9 +25,10 @@ func (s *MemberService) Del(id int64) {
 }
 
 // Edit update
-func (s *MemberService) Edit(id int64, command MemberCommand) {
+func (s *MemberService) Edit(id int64, command MemberCommand) error {
 	fmt.Printf("[Edit] id: %v, name: %s, mobile: %s, weight: %v \n", id, command.Name, command.Mobile, command.Weight)
 	time.Sleep(100 * time.Millisecond)
+	return nil
 }
 
 // Get select one

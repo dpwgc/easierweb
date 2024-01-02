@@ -193,6 +193,10 @@ func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
 func TestAPI(ctx *easierweb.Context, req Request) *Response
 
 // input: Request
+// output: error
+func TestAPI(ctx *easierweb.Context, req Request) error
+
+// input: Request
 // output: empty
 func TestAPI(ctx *easierweb.Context, req Request)
 
@@ -203,6 +207,10 @@ func TestAPI(ctx *easierweb.Context) (*Response, error)
 // input: empty
 // output: *Response
 func TestAPI(ctx *easierweb.Context) *Response
+
+// input: empty
+// output: error
+func TestAPI(ctx *easierweb.Context) error
 
 // input: empty
 // output: empty

@@ -35,14 +35,6 @@ type PluginOptions struct {
 	ResponseHandle ResponseHandle
 }
 
-type Handle func(ctx *Context)
-
-type RequestHandle func(ctx *Context, reqObj any) error
-
-type ResponseHandle func(ctx *Context, result any, err error)
-
-type ErrorHandle func(ctx *Context, err any)
-
 func New(opts ...RouterOptions) *Router {
 	r := &Router{
 		multipartFormMaxMemory: 32 << 20,
@@ -75,35 +67,35 @@ func New(opts ...RouterOptions) *Router {
 // easier usage function
 
 func (r *Router) EasyGET(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.GET(path, r.buildHandle(easyHandle, opts))
+	return r.GET(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyHEAD(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.HEAD(path, r.buildHandle(easyHandle, opts))
+	return r.HEAD(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyOPTIONS(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.OPTIONS(path, r.buildHandle(easyHandle, opts))
+	return r.OPTIONS(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyPOST(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.POST(path, r.buildHandle(easyHandle, opts))
+	return r.POST(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyPUT(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.PUT(path, r.buildHandle(easyHandle, opts))
+	return r.PUT(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyPATCH(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.PATCH(path, r.buildHandle(easyHandle, opts))
+	return r.PATCH(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyDELETE(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.DELETE(path, r.buildHandle(easyHandle, opts))
+	return r.DELETE(path, r.easyHandle(easyHandle, opts))
 }
 
 func (r *Router) EasyAny(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.Any(path, r.buildHandle(easyHandle, opts))
+	return r.Any(path, r.easyHandle(easyHandle, opts))
 }
 
 // basic usage function

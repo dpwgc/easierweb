@@ -1,6 +1,7 @@
 package easierweb
 
 import (
+	"errors"
 	"fmt"
 	"golang.org/x/net/websocket"
 	"io"
@@ -43,6 +44,7 @@ func TestRouterSimple(t *testing.T) {
 	router.EasyHEAD("/easy/head/:id", simpleTestEasyQueryAPI)
 
 	router.EasyGET("/easy/error", simpleTestErrorAPI)
+	router.EasyGET("/easy/error/return", simpleTestErrorReturnAPI)
 
 	go func() {
 		time.Sleep(3 * time.Second)
@@ -148,6 +150,10 @@ func simpleTestErrorAPI(ctx *Context) {
 	panic("test error")
 }
 
+func simpleTestErrorReturnAPI(ctx *Context) error {
+	return errors.New("test error return")
+}
+
 func simpleTestWebsocketConnect(ctx *Context) {
 	msg, err := ctx.ReceiveString()
 	if err != nil {
@@ -207,6 +213,7 @@ func simpleTestHttpSendExecute() {
 
 	simpleTestHttpClient("GET", "/error", "")
 	simpleTestHttpClient("GET", "/easy/error", "")
+	simpleTestHttpClient("GET", "/easy/error/return", "")
 }
 
 func simpleTestHttpClient(method, uri, body string) {

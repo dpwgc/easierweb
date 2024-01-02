@@ -36,8 +36,8 @@ body:
   "weight": 20.48
 }
 */
-func (c *MemberController) Edit(ctx *easierweb.Context, command MemberCommand) {
-	memberService.Edit(ctx.Path.Int64("id"), command)
+func (c *MemberController) Edit(ctx *easierweb.Context, command MemberCommand) error {
+	return memberService.Edit(ctx.Path.Int64("id"), command)
 }
 
 // Get select one
