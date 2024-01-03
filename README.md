@@ -268,6 +268,11 @@ func TestAPI(ctx *easierweb.Context) {
 }
 ```
 
+```go
+// set TestAPI handle
+router.EasyPOST("/test", TestAPI)
+```
+
 ***
 
 ## Demo program
