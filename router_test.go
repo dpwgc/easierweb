@@ -11,49 +11,49 @@ import (
 	"time"
 )
 
-// simple test
+// router test
 
-func TestRouterSimple(t *testing.T) {
+func TestRouter(t *testing.T) {
 
-	fmt.Println("\n[TestRouterSimple] start")
+	fmt.Println("\n[TestRouter] start")
 
 	router := New(RouterOptions{
 		RootPath: "/test/simple",
-	}).Use(simpleTestMiddleware)
+	}).Use(routerTestMiddleware)
 
 	// set handles
-	router.POST("/post", simpleTestAPI)
-	router.DELETE("/delete/:id", simpleTestAPI)
-	router.PUT("/put/:id", simpleTestAPI)
-	router.PATCH("/patch/:id", simpleTestAPI)
-	router.GET("/get/:id", simpleTestAPI)
-	router.OPTIONS("/options/:id", simpleTestAPI)
-	router.HEAD("/head/:id", simpleTestAPI)
+	router.POST("/post", routerTestAPI)
+	router.DELETE("/delete/:id", routerTestAPI)
+	router.PUT("/put/:id", routerTestAPI)
+	router.PATCH("/patch/:id", routerTestAPI)
+	router.GET("/get/:id", routerTestAPI)
+	router.OPTIONS("/options/:id", routerTestAPI)
+	router.HEAD("/head/:id", routerTestAPI)
 
-	router.WS("/ws", simpleTestWebsocketConnect)
+	router.WS("/ws", routerTestWebsocketConnect)
 
-	router.GET("/error", simpleTestErrorAPI)
+	router.GET("/error", routerTestErrorAPI)
 
 	// set easy handles
-	router.EasyPOST("/easy/post", simpleTestEasySaveAPI)
-	router.EasyDELETE("/easy/delete/:id", simpleTestEasyDelAPI)
-	router.EasyPUT("/easy/put/:id", simpleTestEasySaveAPI)
-	router.EasyPATCH("/easy/patch/:id", simpleTestEasySaveAPI)
-	router.EasyGET("/easy/get/:id", simpleTestEasyQueryAPI)
-	router.EasyOPTIONS("/easy/options/:id", simpleTestEasyQueryAPI)
-	router.EasyHEAD("/easy/head/:id", simpleTestEasyQueryAPI)
+	router.EasyPOST("/easy/post", routerTestEasySaveAPI)
+	router.EasyDELETE("/easy/delete/:id", routerTestEasyDelAPI)
+	router.EasyPUT("/easy/put/:id", routerTestEasySaveAPI)
+	router.EasyPATCH("/easy/patch/:id", routerTestEasySaveAPI)
+	router.EasyGET("/easy/get/:id", routerTestEasyQueryAPI)
+	router.EasyOPTIONS("/easy/options/:id", routerTestEasyQueryAPI)
+	router.EasyHEAD("/easy/head/:id", routerTestEasyQueryAPI)
 
-	router.EasyGET("/easy/error", simpleTestErrorAPI)
-	router.EasyGET("/easy/error/return", simpleTestErrorReturnAPI)
+	router.EasyGET("/easy/error", routerTestErrorAPI)
+	router.EasyGET("/easy/error/return", routerTestErrorReturnAPI)
 
 	go func() {
 		time.Sleep(3 * time.Second)
-		simpleTestHttpSendExecute()
+		routerTestHttpSendExecute()
 		fmt.Println()
 		time.Sleep(1 * time.Second)
-		simpleTestWebsocketClientExecute()
+		routerTestWebsocketClientExecute()
 		time.Sleep(2 * time.Second)
-		fmt.Println("\n[TestRouterSimple](go func) close router")
+		fmt.Println("\n[TestRouter](go func) close router")
 		err := router.Close()
 		if err != nil {
 			panic(err)
@@ -66,42 +66,48 @@ func TestRouterSimple(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println("\n[TestRouterSimple] end")
+	fmt.Println("\n[TestRouter] end")
 }
 
 // middleware
-func simpleTestMiddleware(ctx *Context) {
-	fmt.Println("[TestRouterSimple](simpleTestMiddleware) route ->", ctx.Route)
-	fmt.Println("[TestRouterSimple](simpleTestMiddleware) before ->", time.Now().UnixMilli())
+func routerTestMiddleware(ctx *Context) {
+	fmt.Println("[TestRouter](routerTestMiddleware) route ->", ctx.Route)
+	fmt.Println("[TestRouter](routerTestMiddleware) before ->", time.Now().UnixMilli())
 	ctx.Next()
-	fmt.Println("[TestRouterSimple](simpleTestMiddleware) after ->", time.Now().UnixMilli())
+	fmt.Println("[TestRouter](routerTestMiddleware) after ->", time.Now().UnixMilli())
 }
 
-func simpleTestAPI(ctx *Context) {
+func routerTestAPI(ctx *Context) {
 	if ctx.Request.Method == "GET" || ctx.Request.Method == "HEAD" || ctx.Request.Method == "OPTIONS" || ctx.Request.Method == "PUT" || ctx.Request.Method == "PATCH" || ctx.Request.Method == "DELETE" {
-		fmt.Println("[TestRouterSimple](simpleTestAPI) uri path id ->", ctx.Path.Int64("id"))
+		fmt.Println("[TestRouter](routerTestAPI) uri path id ->", ctx.Path.Int64("id"))
 	}
 	if ctx.Request.Method == "POST" || ctx.Request.Method == "PUT" || ctx.Request.Method == "PATCH" {
-		dto := simpleTestDTO{}
+		dto := routerTestDTO{}
 		err := ctx.BindJSON(&dto)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("[TestRouterSimple](simpleTestAPI) request body ->", dto)
+		if dto.Int64 == 0 {
+			panic("bind data error")
+		}
+		fmt.Println("[TestRouter](routerTestAPI) request body ->", dto)
 	}
 	if ctx.Request.Method == "GET" {
-		dto := simpleTestDTO{}
+		dto := routerTestDTO{}
 		err := ctx.BindQuery(&dto)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("[TestRouterSimple](simpleTestAPI) uri query parameters ->", dto)
+		if dto.Int64 == 0 {
+			panic("bind data error")
+		}
+		fmt.Println("[TestRouter](routerTestAPI) uri query parameters ->", dto)
 	}
 	if ctx.Request.Method == "HEAD" {
 		ctx.NoContent(http.StatusNoContent)
 		return
 	}
-	ctx.WriteJSON(http.StatusOK, simpleTestDTO{
+	ctx.WriteJSON(http.StatusOK, routerTestDTO{
 		Int:     1,
 		Int32:   2,
 		Int64:   3,
@@ -111,13 +117,13 @@ func simpleTestAPI(ctx *Context) {
 	})
 }
 
-func simpleTestEasyQueryAPI(ctx *Context, dto simpleTestDTO) *simpleTestDTO {
-	fmt.Println("[TestRouterSimple](simpleTestEasyQueryAPI) uri path id ->", ctx.Path.Int64("id"))
-	fmt.Println("[TestRouterSimple](simpleTestEasyQueryAPI) uri query parameters ->", dto)
+func routerTestEasyQueryAPI(ctx *Context, dto routerTestDTO) *routerTestDTO {
+	fmt.Println("[TestRouter](routerTestEasyQueryAPI) uri path id ->", ctx.Path.Int64("id"))
+	fmt.Println("[TestRouter](routerTestEasyQueryAPI) uri query parameters ->", dto)
 	if ctx.Request.Method == "HEAD" {
 		return nil
 	}
-	return &simpleTestDTO{
+	return &routerTestDTO{
 		Int:     1,
 		Int32:   2,
 		Int64:   3,
@@ -127,12 +133,15 @@ func simpleTestEasyQueryAPI(ctx *Context, dto simpleTestDTO) *simpleTestDTO {
 	}
 }
 
-func simpleTestEasySaveAPI(ctx *Context, dto simpleTestDTO) (*simpleTestDTO, error) {
+func routerTestEasySaveAPI(ctx *Context, dto routerTestDTO) (*routerTestDTO, error) {
 	if ctx.Request.Method == "PUT" || ctx.Request.Method == "PATCH" {
-		fmt.Println("[TestRouterSimple](simpleTestEasySaveAPI) uri path id ->", ctx.Path.Int64("id"))
+		fmt.Println("[TestRouter](routerTestEasySaveAPI) uri path id ->", ctx.Path.Int64("id"))
 	}
-	fmt.Println("[TestRouterSimple](simpleTestEasySaveAPI) request body ->", dto)
-	return &simpleTestDTO{
+	fmt.Println("[TestRouter](routerTestEasySaveAPI) request body ->", dto)
+	if dto.Int64 == 0 {
+		panic("bind data error")
+	}
+	return &routerTestDTO{
 		Int:     1,
 		Int32:   2,
 		Int64:   3,
@@ -142,24 +151,24 @@ func simpleTestEasySaveAPI(ctx *Context, dto simpleTestDTO) (*simpleTestDTO, err
 	}, nil
 }
 
-func simpleTestEasyDelAPI(ctx *Context, dto simpleTestDTO) {
-	fmt.Println("[TestRouterSimple](simpleTestEasyDelAPI) uri path id ->", ctx.Path.Int64("id"))
+func routerTestEasyDelAPI(ctx *Context, dto routerTestDTO) {
+	fmt.Println("[TestRouter](routerTestEasyDelAPI) uri path id ->", ctx.Path.Int64("id"))
 }
 
-func simpleTestErrorAPI(ctx *Context) {
+func routerTestErrorAPI(ctx *Context) {
 	panic("test error")
 }
 
-func simpleTestErrorReturnAPI(ctx *Context) error {
+func routerTestErrorReturnAPI(ctx *Context) error {
 	return errors.New("test error return")
 }
 
-func simpleTestWebsocketConnect(ctx *Context) {
+func routerTestWebsocketConnect(ctx *Context) {
 	msg, err := ctx.ReceiveString()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("[TestRouterSimple](simpleTestWebsocketConnect) server read websocket msg ->", msg)
+	fmt.Println("[TestRouter](routerTestWebsocketConnect) server read websocket msg ->", msg)
 	err = ctx.SendString("test msg")
 	if err != nil {
 		panic(err)
@@ -167,7 +176,7 @@ func simpleTestWebsocketConnect(ctx *Context) {
 	return
 }
 
-func simpleTestWebsocketClientExecute() {
+func routerTestWebsocketClientExecute() {
 	origin := "http://localhost/"
 	url := "ws://localhost/test/simple/ws"
 	ws, err := websocket.Dial(url, "", origin)
@@ -183,41 +192,41 @@ func simpleTestWebsocketClientExecute() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("[TestRouterSimple](simpleTestWebsocketClientExecute) client read websocket msg ->", string(buf[:n]))
+	fmt.Println("[TestRouter](routerTestWebsocketClientExecute) client read websocket msg ->", string(buf[:n]))
 }
 
-func simpleTestHttpSendExecute() {
+func routerTestHttpSendExecute() {
 
 	body := "{\"int\":1,\"int32\":2,\"int64\":3,\"string\":\"test\",\"float32\":1.1,\"float64\":2.2}"
 
-	simpleTestHttpClient("HEAD", "/head/123", "")
-	simpleTestHttpClient("HEAD", "/easy/head/123", "")
+	routerTestHttpClient("HEAD", "/head/123", "")
+	routerTestHttpClient("HEAD", "/easy/head/123", "")
 
-	simpleTestHttpClient("OPTIONS", "/options/123", "")
-	simpleTestHttpClient("OPTIONS", "/easy/options/123", "")
+	routerTestHttpClient("OPTIONS", "/options/123", "")
+	routerTestHttpClient("OPTIONS", "/easy/options/123", "")
 
-	simpleTestHttpClient("GET", "/get/123?int=1&int32=2&int64=3&string=test&float32=1.1&float64=2.2", "")
-	simpleTestHttpClient("GET", "/easy/get/123?int=1&int32=2&int64=3&string=test&float32=1.1&float64=2.2", "")
+	routerTestHttpClient("GET", "/get/123?int=1&int32=2&int64=3&string=test&float32=1.1&float64=2.2", "")
+	routerTestHttpClient("GET", "/easy/get/123?int=1&int32=2&int64=3&string=test&float32=1.1&float64=2.2", "")
 
-	simpleTestHttpClient("POST", "/post", body)
-	simpleTestHttpClient("POST", "/easy/post", body)
+	routerTestHttpClient("POST", "/post", body)
+	routerTestHttpClient("POST", "/easy/post", body)
 
-	simpleTestHttpClient("PUT", "/put/123", body)
-	simpleTestHttpClient("PUT", "/easy/put/123", body)
+	routerTestHttpClient("PUT", "/put/123", body)
+	routerTestHttpClient("PUT", "/easy/put/123", body)
 
-	simpleTestHttpClient("PATCH", "/patch/123", body)
-	simpleTestHttpClient("PATCH", "/easy/patch/123", body)
+	routerTestHttpClient("PATCH", "/patch/123", body)
+	routerTestHttpClient("PATCH", "/easy/patch/123", body)
 
-	simpleTestHttpClient("DELETE", "/delete/123", "")
-	simpleTestHttpClient("DELETE", "/easy/delete/123", "")
+	routerTestHttpClient("DELETE", "/delete/123", "")
+	routerTestHttpClient("DELETE", "/easy/delete/123", "")
 
-	simpleTestHttpClient("GET", "/error", "")
-	simpleTestHttpClient("GET", "/easy/error", "")
-	simpleTestHttpClient("GET", "/easy/error/return", "")
+	routerTestHttpClient("GET", "/error", "")
+	routerTestHttpClient("GET", "/easy/error", "")
+	routerTestHttpClient("GET", "/easy/error/return", "")
 }
 
-func simpleTestHttpClient(method, uri, body string) {
-	fmt.Printf("\n[TestRouterSimple](simpleTestHttpClient) request method: %s, uri: %s, body: %s \n", method, uri, body)
+func routerTestHttpClient(method, uri, body string) {
+	fmt.Printf("\n[TestRouter](routerTestHttpClient) request method: %s, uri: %s, body: %s \n", method, uri, body)
 	var payload = strings.NewReader(body)
 	request, err := http.NewRequest(method, "http://localhost/test/simple"+uri, payload)
 	if err != nil {
@@ -237,10 +246,10 @@ func simpleTestHttpClient(method, uri, body string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("[TestRouterSimple](simpleTestHttpClient) response code: %v, data -> %s \n", response.StatusCode, string(result))
+	fmt.Printf("[TestRouter](routerTestHttpClient) response code: %v, data -> %s \n", response.StatusCode, string(result))
 }
 
-type simpleTestDTO struct {
+type routerTestDTO struct {
 	Int     int     `json:"int" mapstructure:"int"`
 	Int32   int32   `json:"int32" mapstructure:"int32"`
 	Int64   int64   `json:"int64" mapstructure:"int64"`

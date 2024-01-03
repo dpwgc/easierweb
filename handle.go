@@ -124,7 +124,7 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) (*Context, error) {
 
 	handles := append([]Handle(nil), r.middlewares...)
-	handles = append([]Handle(nil), middlewares...)
+	handles = append(handles, middlewares...)
 	ctx := Context{
 		Route:          route,
 		index:          0,
