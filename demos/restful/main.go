@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var memberController = app.MemberController{}
+
 // restful demo
 // a more complete example
 func main() {
@@ -23,15 +25,14 @@ func main() {
 
 	// create a group, group path is /v2, set group middleware
 	v2Group := router.Group("/v2", timeCost)
-
-	memberController := app.MemberController{}
-
-	// set methods
-	v2Group.EasyPOST("/member", memberController.Add)
-	v2Group.EasyDELETE("/member/:id", memberController.Del)
-	v2Group.EasyPUT("/member/:id", memberController.Edit)
-	v2Group.EasyGET("/member/:id", memberController.Get)
-	v2Group.EasyGET("/members", memberController.List)
+	{
+		// set methods
+		v2Group.EasyPOST("/member", memberController.Add)
+		v2Group.EasyDELETE("/member/:id", memberController.Del)
+		v2Group.EasyPUT("/member/:id", memberController.Edit)
+		v2Group.EasyGET("/member/:id", memberController.Get)
+		v2Group.EasyGET("/members", memberController.List)
+	}
 
 	// started on port 80
 	log.Fatal(router.Run(":80"))
