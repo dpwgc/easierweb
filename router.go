@@ -30,11 +30,6 @@ type Router struct {
 	closeConsolePrint      bool
 }
 
-type PluginOptions struct {
-	RequestHandle  RequestHandle
-	ResponseHandle ResponseHandle
-}
-
 func New(opts ...RouterOptions) *Router {
 	r := &Router{
 		multipartFormMaxMemory: 32 << 20,
@@ -66,113 +61,113 @@ func New(opts ...RouterOptions) *Router {
 
 // easier usage function
 
-func (r *Router) EasyGET(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.GET(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyGET(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.GET(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyHEAD(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.HEAD(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyHEAD(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.HEAD(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyOPTIONS(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.OPTIONS(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyOPTIONS(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.OPTIONS(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyPOST(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.POST(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyPOST(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.POST(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyPUT(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.PUT(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyPUT(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.PUT(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyPATCH(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.PATCH(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyPATCH(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.PATCH(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyDELETE(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.DELETE(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyDELETE(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.DELETE(path, r.easyHandle(easyHandle), middlewares...)
 }
 
-func (r *Router) EasyAny(path string, easyHandle any, opts ...PluginOptions) *Router {
-	return r.Any(path, r.easyHandle(easyHandle, opts))
+func (r *Router) EasyAny(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.Any(path, r.easyHandle(easyHandle), middlewares...)
 }
 
 // basic usage function
 
-func (r *Router) GET(path string, handle Handle) *Router {
+func (r *Router) GET(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.GET(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) HEAD(path string, handle Handle) *Router {
+func (r *Router) HEAD(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.HEAD(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) OPTIONS(path string, handle Handle) *Router {
+func (r *Router) OPTIONS(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.OPTIONS(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) POST(path string, handle Handle) *Router {
+func (r *Router) POST(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.POST(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) PUT(path string, handle Handle) *Router {
+func (r *Router) PUT(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.PUT(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) PATCH(path string, handle Handle) *Router {
+func (r *Router) PATCH(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.PATCH(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) DELETE(path string, handle Handle) *Router {
+func (r *Router) DELETE(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.DELETE(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil)
+		r.handle(route, handle, res, req, par, nil, middlewares...)
 	})
 	return r
 }
 
-func (r *Router) Any(path string, handle Handle) *Router {
-	r.GET(path, handle)
-	r.HEAD(path, handle)
-	r.OPTIONS(path, handle)
-	r.POST(path, handle)
-	r.PUT(path, handle)
-	r.PATCH(path, handle)
-	r.DELETE(path, handle)
+func (r *Router) Any(path string, handle Handle, middlewares ...Handle) *Router {
+	r.GET(path, handle, middlewares...)
+	r.HEAD(path, handle, middlewares...)
+	r.OPTIONS(path, handle, middlewares...)
+	r.POST(path, handle, middlewares...)
+	r.PUT(path, handle, middlewares...)
+	r.PATCH(path, handle, middlewares...)
+	r.DELETE(path, handle, middlewares...)
 	return r
 }
 
-func (r *Router) WS(path string, handle Handle) *Router {
+func (r *Router) WS(path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.GET(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
 			Handler: func(ws *websocket.Conn) {
-				r.handle(route, handle, res, req, par, ws)
+				r.handle(route, handle, res, req, par, ws, middlewares...)
 			},
 			Handshake: func(config *websocket.Config, req *http.Request) error {
 				// 解决跨域

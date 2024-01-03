@@ -27,7 +27,7 @@ type Context struct {
 	WebsocketConn  *websocket.Conn
 	index          int
 	handles        []Handle
-	isWrite        bool
+	isReturned     bool
 }
 
 func (c *Context) Next() {
@@ -92,6 +92,9 @@ func (c *Context) BindXML(obj any) error {
 // Result Write
 
 func (c *Context) WriteJSON(code int, obj any) {
+	if c.isReturned {
+		return
+	}
 	marshal, err := json.Marshal(obj)
 	if err != nil {
 		panic(err)
@@ -100,6 +103,9 @@ func (c *Context) WriteJSON(code int, obj any) {
 }
 
 func (c *Context) WriteYAML(code int, obj any) {
+	if c.isReturned {
+		return
+	}
 	marshal, err := yaml.Marshal(obj)
 	if err != nil {
 		panic(err)
@@ -108,6 +114,9 @@ func (c *Context) WriteYAML(code int, obj any) {
 }
 
 func (c *Context) WriteXML(code int, obj any) {
+	if c.isReturned {
+		return
+	}
 	marshal, err := xml.Marshal(obj)
 	if err != nil {
 		panic(err)
@@ -116,10 +125,16 @@ func (c *Context) WriteXML(code int, obj any) {
 }
 
 func (c *Context) Redirect(code int, url string) {
+	if c.isReturned {
+		return
+	}
 	http.Redirect(c.ResponseWriter, c.Request, url, code)
 }
 
 func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
+	if c.isReturned {
+		return
+	}
 	fileBytes, err := os.ReadFile(localFilePath)
 	if err != nil {
 		panic(err)
@@ -128,6 +143,9 @@ func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
 }
 
 func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
+	if c.isReturned {
+		return
+	}
 	if len(fileName) > 0 {
 		c.SetContentDisposition(fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 	} else {
@@ -142,6 +160,9 @@ func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
 }
 
 func (c *Context) WriteString(code int, text string) {
+	if c.isReturned {
+		return
+	}
 	c.Write(code, []byte(text))
 }
 
@@ -150,14 +171,14 @@ func (c *Context) NoContent(code int) {
 }
 
 func (c *Context) Write(code int, data []byte) {
-	if c.isWrite {
+	if c.isReturned {
 		return
 	}
 	c.Code = code
 	c.Result = data
 	c.ResponseWriter.WriteHeader(code)
 	_, err := c.ResponseWriter.Write(data)
-	c.isWrite = true
+	c.isReturned = true
 	if err != nil {
 		panic(err)
 	}

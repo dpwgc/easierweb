@@ -18,9 +18,9 @@ type ResponseHandle func(ctx *Context, result any, err error)
 
 type ErrorHandle func(ctx *Context, err any)
 
-func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) {
+func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) {
 
-	ctx, err := r.buildContext(route, res, req, par, ws)
+	ctx, err := r.buildContext(route, res, req, par, ws, middlewares...)
 
 	defer func() {
 		sErr := recover()
@@ -34,14 +34,10 @@ func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, re
 	}
 
 	// middleware execution
-	if len(r.middlewares) > 0 {
-		ctx.handles = append(ctx.handles, handle)
-		for ctx.index < len(ctx.handles) {
-			ctx.handles[ctx.index](ctx)
-			ctx.index++
-		}
-	} else {
-		handle(ctx)
+	ctx.handles = append(ctx.handles, handle)
+	for ctx.index < len(ctx.handles) {
+		ctx.handles[ctx.index](ctx)
+		ctx.index++
 	}
 
 	// if a websocket connection exists, the websocket connection is automatically closed when the function returns
@@ -53,26 +49,14 @@ func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, re
 	}
 }
 
-func (r *Router) easyHandle(easyHandle any, opts []PluginOptions) Handle {
+func (r *Router) easyHandle(easyHandle any) Handle {
 	return func(ctx *Context) {
-		var requestHandle RequestHandle
-		var responseHandle ResponseHandle
-		for _, v := range opts {
-			requestHandle = v.RequestHandle
-			responseHandle = v.ResponseHandle
-		}
 		// verify
-		if requestHandle == nil {
-			if r.requestHandle == nil {
-				panic(errors.New("request handle is empty"))
-			}
-			requestHandle = r.requestHandle
+		if r.requestHandle == nil {
+			panic(errors.New("request handle is empty"))
 		}
-		if responseHandle == nil {
-			if r.responseHandle == nil {
-				panic(errors.New("response handle is empty"))
-			}
-			responseHandle = r.responseHandle
+		if r.responseHandle == nil {
+			panic(errors.New("response handle is empty"))
 		}
 		// reflection gets the type of function
 		funcType := reflect.TypeOf(easyHandle)
@@ -95,9 +79,9 @@ func (r *Router) easyHandle(easyHandle any, opts []PluginOptions) Handle {
 		}
 
 		if reqObj != nil {
-			err := requestHandle(ctx, reqObj)
+			err := r.requestHandle(ctx, reqObj)
 			if err != nil {
-				responseHandle(ctx, nil, err)
+				r.responseHandle(ctx, nil, err)
 			}
 		}
 
@@ -106,7 +90,7 @@ func (r *Router) easyHandle(easyHandle any, opts []PluginOptions) Handle {
 
 		// no object return, no error return
 		if len(returnValues) == 0 {
-			responseHandle(ctx, nil, nil)
+			r.responseHandle(ctx, nil, nil)
 			return
 		}
 
@@ -117,7 +101,7 @@ func (r *Router) easyHandle(easyHandle any, opts []PluginOptions) Handle {
 		// if first return value is error
 		if isErr {
 			// return error
-			responseHandle(ctx, nil, firstErrorValue)
+			r.responseHandle(ctx, nil, firstErrorValue)
 			return
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
 			resultValue = returnValues[0].Elem().Interface()
@@ -127,22 +111,24 @@ func (r *Router) easyHandle(easyHandle any, opts []PluginOptions) Handle {
 
 		// just one value return
 		if len(returnValues) == 1 {
-			responseHandle(ctx, resultValue, nil)
+			r.responseHandle(ctx, resultValue, nil)
 			return
 		}
 
 		// has object return and error return
 		errValue, _ := returnValues[1].Interface().(error)
-		responseHandle(ctx, resultValue, errValue)
+		r.responseHandle(ctx, resultValue, errValue)
 	}
 }
 
-func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn) (*Context, error) {
+func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) (*Context, error) {
 
+	handles := append([]Handle(nil), r.middlewares...)
+	handles = append([]Handle(nil), middlewares...)
 	ctx := Context{
 		Route:          route,
 		index:          0,
-		handles:        append([]Handle(nil), r.middlewares...),
+		handles:        handles,
 		Header:         map[string]string{},
 		Path:           map[string]string{},
 		Query:          map[string]string{},

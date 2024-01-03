@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
 	"github.com/dpwgc/easierweb/demos/restful/app"
+	"github.com/dpwgc/easierweb/middlewares"
 	"log"
 	"time"
 )
@@ -14,20 +15,23 @@ func main() {
 
 	// create a router, root path is /api/v2
 	router := easierweb.New(easierweb.RouterOptions{
-		RootPath: "/api/v2",
+		RootPath: "/api",
 	})
 
 	// use middleware
-	router.Use(timeCost)
+	router.Use(middlewares.Logger)
+
+	// create a group and set middleware
+	v2Group := router.Group("/v2", timeCost)
 
 	memberController := app.MemberController{}
 
 	// set methods
-	router.EasyPOST("/member", memberController.Add)
-	router.EasyDELETE("/member/:id", memberController.Del)
-	router.EasyPUT("/member/:id", memberController.Edit)
-	router.EasyGET("/member/:id", memberController.Get)
-	router.EasyGET("/members", memberController.List)
+	v2Group.EasyPOST("/member", memberController.Add)
+	v2Group.EasyDELETE("/member/:id", memberController.Del)
+	v2Group.EasyPUT("/member/:id", memberController.Edit)
+	v2Group.EasyGET("/member/:id", memberController.Get)
+	v2Group.EasyGET("/members", memberController.List)
 
 	// started on port 80
 	log.Fatal(router.Run(":80"))

@@ -8,9 +8,10 @@
 
 ## Features
 * Easier to obtain parameters and bind data. Can auto bind query/form/body data.
-* Have a more concise way to write API. Easier to handle request and response
-* Highly customizable. Custom error capture and request/response data handling. Custom middleware.
-* No dependencies on too many third-party packages. Architecture is simple
+* Have a more concise way to write API. Easier to handle request and response.
+* Highly customizable. Custom error capture and request/response data handling.
+* No dependencies on too many third-party packages. Architecture is simple.
+* Group APIs. Custom root-level and group-level middleware.
 * Easier to write websocket service and file service.
 * Support TLS.
 
@@ -181,43 +182,35 @@ type Response struct {
 
 ### Other notes
 
-* If you want to use function 'EasyGET', 'EasyPOST', 'EasyPUT'... the api handle function must be in the following formats. (request struct and response struct can be slices)
+* If you want to use 'EasyGET', 'EasyPOST', 'EasyPUT'... functions. The api handle function must be in the following formats. request struct and response struct can be slices ([]Request/[]*Response)
 
 ```go
-// input: Request
-// output: *Response, error
+// input: Request | output: *Response, error
 func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
 
-// input: Request
-// output: *Response
+// input: Request | output: *Response
 func TestAPI(ctx *easierweb.Context, req Request) *Response
 
-// input: Request
-// output: error
+// input: Request | output: error
 func TestAPI(ctx *easierweb.Context, req Request) error
 
-// input: Request
-// output: empty
+// input: Request | output: empty
 func TestAPI(ctx *easierweb.Context, req Request)
 
-// input: empty
-// output: *Response, error
+// input: empty | output: *Response, error
 func TestAPI(ctx *easierweb.Context) (*Response, error)
 
-// input: empty
-// output: *Response
+// input: empty | output: *Response
 func TestAPI(ctx *easierweb.Context) *Response
 
-// input: empty
-// output: error
+// input: empty | output: error
 func TestAPI(ctx *easierweb.Context) error
 
-// input: empty
-// output: empty
+// input: empty | output: empty
 func TestAPI(ctx *easierweb.Context)
+```
 
-// ----- ----- -----
-
+```go
 // set TestAPI handle
 router.EasyPOST("/test", TestAPI)
 ```
@@ -234,15 +227,25 @@ router := easierweb.New(easierweb.RouterOptions{
 })
 ```
 
-* If you want to change the request and response format for a single api.
-* Use 'PluginOptions' to set up the plugins.
+* The 'EasyXXX' series functions are compatible with basic usage.
 
 ```go
-// use xml format to process request and response data (takes effect only for this api)
-router.EasyGET("/test", test, easierweb.PluginOptions{
-   RequestHandle: plugins.XMLRequestHandle,
-   ResponseHandle: plugins.XMLResponseHandle,
-})
+func TestAPI(ctx *easierweb.Context) {
+   req := Request{}
+   err := ctx.BindXML(&req)
+   if err != nil {
+      panic(err)
+   }
+   ctx.WriteXML(http.StatusOK, Response{
+      Code: 1000,
+      Msg:  "hello",
+   })
+}
+```
+
+```go
+// set TestAPI handle
+router.EasyPOST("/test", TestAPI)
 ```
 
 ***
