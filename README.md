@@ -19,7 +19,7 @@
 Simple example of API handle
 
 ```go
-// automatic binding query/form/body data and writing response.
+// automatic binding query/form/body data and writing response
 func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
 
    // print the request data
@@ -89,32 +89,6 @@ func hello(ctx *easierweb.Context) {
 ### Access the HTTP URL in your browser
 
 > `GET` http://localhost/hello
-
-### Other notes
-
-* You can use context bind function to obtain the request data.
-
-```go
-// struct
-request := Request{}
-
-// bind query/path/form parameters (based on mapstructure)
-ctx.BindQuery(&request)
-ctx.BindPath(&request)
-ctx.BindForm(&request)
-
-// bind json body data
-ctx.BindJSON(&request)
-```
-
-* Take a single parameter and convert its type.
-
-```go
-// obtain the query/path/form parameter
-name := ctx.Query.Float32("weight")
-id := ctx.Path.Int64("id")
-mobile := ctx.Form.Get("mobile")
-```
 
 ***
 
@@ -193,7 +167,7 @@ type Response struct {
 
 ### Other notes
 
-* If you want to use 'EasyGET', 'EasyPOST', 'EasyPUT'... functions. The api handle function must be in the following formats. request struct and response struct can be slices ([]Request/[]*Response)
+* If you want to use 'EasyGET', 'EasyPOST', 'EasyPUT'... functions. The api handle function must be in the following formats. request struct and response struct can be slices ([]Request/*[]Response)
 
 ```go
 // input: Context, Request | output: *Response, error
@@ -244,14 +218,10 @@ router := easierweb.New(easierweb.RouterOptions{
 func TestAPI(ctx *easierweb.Context, req Request) {
 
    fmt.Println("request body ->", req)
+   
    // write xml response
    ctx.WriteXML(http.StatusOK, Response{Code: 1000, Msg:  "hello"})
 }
-```
-
-```go
-// set TestAPI handle
-router.EasyPOST("/test", TestAPI)
 ```
 
 ***
