@@ -44,8 +44,8 @@ go get github.com/dpwgc/easierweb
 
 ### Framework offers two different styles of use
 
-### `1` Basic usage: like gin and echo (no reflect, faster)
-### `2` Easier usage: like spring boot (more concise way to write API handle)
+### `1` Basic usage : like gin and echo ( no reflect, fast )
+### `2` Easier usage : like spring boot ( more concise way to write API handle )
 
 ***
 
@@ -167,7 +167,7 @@ type Response struct {
 
 ### Other notes
 
-* If you want to use 'EasyGET', 'EasyPOST', 'EasyPUT'... functions. The api handle function must be in the following formats. request struct and response struct can be slices ([]Request/*[]Response)
+* If you want to use 'EasyXXX' series functions. The api handle function must be in the following formats. request struct and response struct can be slices ( []Request / *[]Response )
 
 ```go
 // input: Context, Request | output: *Response, error
@@ -202,7 +202,7 @@ router.EasyPOST("/test", TestAPI)
 
 * Framework default use json format to process request and response data.
 * If you want to change the format, you can use the plugin, framework comes with multiple plugins.
-* When creating a router, use 'RouterOptions' to set up the plugins.
+* When creating router, use 'RouterOptions' to set up the plugins.
 
 ```go
 // use xml format to process request and response data (global configuration, takes effect for all api)
