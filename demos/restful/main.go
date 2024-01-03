@@ -13,15 +13,15 @@ import (
 // a more complete example
 func main() {
 
-	// create a router, root path is /api/v2
+	// create a router, root path is /api
 	router := easierweb.New(easierweb.RouterOptions{
 		RootPath: "/api",
 	})
 
-	// use middleware
+	// use router middleware
 	router.Use(middlewares.Logger)
 
-	// create a group and set middleware
+	// create a group, group path is /v2, set group middleware
 	v2Group := router.Group("/v2", timeCost)
 
 	memberController := app.MemberController{}
