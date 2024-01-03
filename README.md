@@ -167,10 +167,11 @@ type Response struct {
 
 ### Other notes
 
-* If you want to use 'EasyXXX' series functions. The api handle function must be in the following formats. request struct and response struct can be slices ( []Request / *[]Response )
+* If you want to use 'EasyXXX' series functions. The api handle function must be in the following formats.
 
 ```go
-// the first input parameter must be Context
+// first input parameter must be Context
+// request struct and response struct can be slices ([]Request/*[]Response)
 func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
 func TestAPI(ctx *easierweb.Context, req Request) *Response
 func TestAPI(ctx *easierweb.Context, req Request) error
