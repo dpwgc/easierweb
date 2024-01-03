@@ -1,6 +1,6 @@
 # EasierWeb
 
-## A more user-friendly, high performance, high customizable, minimalist Go Web framework
+## A more user-friendly, high performance, high customizable Go Web framework
 
 ### Based on [httprouter](https://github.com/julienschmidt/httprouter)
 
@@ -44,8 +44,8 @@ go get github.com/dpwgc/easierweb
 
 ### Framework offers two different styles of use
 
-### `1` Basic usage: like gin and echo
-### `2` Easier usage: like spring boot ( more concise way to write API handle )
+### `1` Basic usage: like gin and echo (no reflect, faster)
+### `2` Easier usage: like spring boot (more concise way to write API handle)
 
 ***
 
@@ -68,11 +68,8 @@ import (
 // basic usage example
 func main() {
 	
-   // create a router
-   router := easierweb.New()
-   
-   // set middleware handle
-   router.Use(middlewares.Logger)
+   // create a router and set middleware
+   router := easierweb.New().Use(middlewares.Logger)
    
    // set api handle
    router.GET("/hello", hello)
@@ -101,13 +98,9 @@ func hello(ctx *easierweb.Context) {
 // struct
 request := Request{}
 
-// bind uri query parameters (based on mapstructure)
+// bind query/path/form parameters (based on mapstructure)
 ctx.BindQuery(&request)
-
-// bind uri path parameters (based on mapstructure)
 ctx.BindPath(&request)
-
-// bind post form parameters (based on mapstructure)
 ctx.BindForm(&request)
 
 // bind json body data
@@ -117,13 +110,9 @@ ctx.BindJSON(&request)
 * Take a single parameter and convert its type.
 
 ```go
-// obtain the uri path parameter
-id := ctx.Path.Int64("id")
-
-// obtain the uri query parameter
+// obtain the query/path/form parameter
 name := ctx.Query.Float32("weight")
-
-// obtain the post form parameter
+id := ctx.Path.Int64("id")
 mobile := ctx.Form.Get("mobile")
 ```
 
@@ -131,7 +120,7 @@ mobile := ctx.Form.Get("mobile")
 
 ## Easier usage
 
-### API handle function has input object and return values
+### API handle function can have input object and return values
 
 ### Don't need to manually bind request data and write response data. framework will help you do this
 
@@ -164,10 +153,7 @@ func submit(ctx *easierweb.Context, req Request) *Response {
    fmt.Printf("post request data (json body) -> name: %s, mobile: %s \n", req.Name, req.Mobile)
    
    // return result
-   return &Response{
-      Code: 1000,
-      Msg:  "hello",
-   }
+   return &Response{Code: 1000, Msg:  "hello"}
 }
 
 // Request json body data
@@ -210,28 +196,28 @@ type Response struct {
 * If you want to use 'EasyGET', 'EasyPOST', 'EasyPUT'... functions. The api handle function must be in the following formats. request struct and response struct can be slices ([]Request/[]*Response)
 
 ```go
-// input: Request | output: *Response, error
+// input: Context, Request | output: *Response, error
 func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
 
-// input: Request | output: *Response
+// input: Context, Request | output: *Response
 func TestAPI(ctx *easierweb.Context, req Request) *Response
 
-// input: Request | output: error
+// input: Context, Request | output: error
 func TestAPI(ctx *easierweb.Context, req Request) error
 
-// input: Request | output: empty
+// input: Context, Request | output: empty
 func TestAPI(ctx *easierweb.Context, req Request)
 
-// input: empty | output: *Response, error
+// input: Context | output: *Response, error
 func TestAPI(ctx *easierweb.Context) (*Response, error)
 
-// input: empty | output: *Response
+// input: Context | output: *Response
 func TestAPI(ctx *easierweb.Context) *Response
 
-// input: empty | output: error
+// input: Context | output: error
 func TestAPI(ctx *easierweb.Context) error
 
-// input: empty | output: empty
+// input: Context | output: empty
 func TestAPI(ctx *easierweb.Context)
 ```
 
@@ -255,16 +241,11 @@ router := easierweb.New(easierweb.RouterOptions{
 * The 'EasyXXX' series functions are compatible with basic usage.
 
 ```go
-func TestAPI(ctx *easierweb.Context) {
-   req := Request{}
-   err := ctx.BindXML(&req)
-   if err != nil {
-      panic(err)
-   }
-   ctx.WriteXML(http.StatusOK, Response{
-      Code: 1000,
-      Msg:  "hello",
-   })
+func TestAPI(ctx *easierweb.Context, req Request) {
+
+   fmt.Println("request body ->", req)
+   // write xml response
+   ctx.WriteXML(http.StatusOK, Response{Code: 1000, Msg:  "hello"})
 }
 ```
 
