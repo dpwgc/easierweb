@@ -7,13 +7,28 @@
 ***
 
 ## Features
-* Easier to obtain parameters and bind data. Can auto bind query/form/body data.
-* Have a more concise way to write API. Easier to handle request and response.
+* Have a more concise way to write API. Can automatic binding query/form/body data and writing response.
 * Highly customizable. Custom error capture and request/response data handling.
 * No dependencies on too many third-party packages. Architecture is simple.
 * Group APIs. Custom root-level and group-level middleware.
 * Easier to write websocket service and file service.
 * Support TLS.
+
+***
+
+Simple example of API handle
+
+```go
+// automatic binding query/form/body data and writing response.
+func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
+
+   // print the request data
+   fmt.Println("request data ->", request)
+
+   // return result and error
+   return &HelloResponse{Code: 1000, Msg:  "hello"}, nil
+}
+```
 
 ***
 
@@ -52,18 +67,23 @@ import (
 
 // basic usage example
 func main() {
+	
    // create a router
    router := easierweb.New()
+   
    // set middleware handle
    router.Use(middlewares.Logger)
+   
    // set api handle
    router.GET("/hello", hello)
+   
    // runs on port 80
    log.Fatal(router.Run(":80"))
 }
 
 // get method request handle
 func hello(ctx *easierweb.Context) {
+	
    // Write response, return 'hello'
    ctx.WriteString(http.StatusOK, "hello")
 }
@@ -126,18 +146,23 @@ import (
 
 // easier usage example
 func main() {
+	
    // create a router
    router := easierweb.New()
+   
    // set api handle (use function 'EasyXXX')
    router.EasyPOST("/submit", submit)
+   
    // runs on port 80
    log.Fatal(router.Run(":80"))
 }
 
 // post method request handle
 func submit(ctx *easierweb.Context, req Request) *Response {
+	
    // print the request data
    fmt.Printf("post request data (json body) -> name: %s, mobile: %s \n", req.Name, req.Mobile)
+   
    // return result
    return &Response{
       Code: 1000,
