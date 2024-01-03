@@ -25,7 +25,7 @@ func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, err
    // print the request data
    fmt.Println("request data ->", request)
 
-   // return result and error
+   // return result and error. framework will help you write the response
    return &HelloResponse{Code: 1000, Msg:  "hello"}, nil
 }
 ```
