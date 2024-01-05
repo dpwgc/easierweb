@@ -5,62 +5,70 @@ import (
 	"net/http"
 )
 
-func JSONResponseHandle(ctx *easierweb.Context, result any, err error) {
-	if err != nil {
-		if result != nil {
-			ctx.WriteJSON(http.StatusBadRequest, result)
+func JSONResponseHandle() easierweb.ResponseHandle {
+	return func(ctx *easierweb.Context, result any, err error) {
+		if err != nil {
+			if result != nil {
+				ctx.WriteJSON(http.StatusBadRequest, result)
+				return
+			}
+			panic(err)
+		}
+		if result == nil {
+			ctx.NoContent(http.StatusNoContent)
 			return
 		}
-		panic(err)
+		ctx.WriteJSON(http.StatusOK, result)
 	}
-	if result == nil {
-		ctx.NoContent(http.StatusNoContent)
-		return
-	}
-	ctx.WriteJSON(http.StatusOK, result)
 }
 
-func YAMLResponseHandle(ctx *easierweb.Context, result any, err error) {
-	if err != nil {
-		if result != nil {
-			ctx.WriteYAML(http.StatusBadRequest, result)
+func YAMLResponseHandle() easierweb.ResponseHandle {
+	return func(ctx *easierweb.Context, result any, err error) {
+		if err != nil {
+			if result != nil {
+				ctx.WriteYAML(http.StatusBadRequest, result)
+				return
+			}
+			panic(err)
+		}
+		if result == nil {
+			ctx.NoContent(http.StatusNoContent)
 			return
 		}
-		panic(err)
+		ctx.WriteYAML(http.StatusOK, result)
 	}
-	if result == nil {
-		ctx.NoContent(http.StatusNoContent)
-		return
-	}
-	ctx.WriteYAML(http.StatusOK, result)
 }
 
-func XMLResponseHandle(ctx *easierweb.Context, result any, err error) {
-	if err != nil {
-		if result != nil {
-			ctx.WriteXML(http.StatusBadRequest, result)
+func XMLResponseHandle() easierweb.ResponseHandle {
+	return func(ctx *easierweb.Context, result any, err error) {
+		if err != nil {
+			if result != nil {
+				ctx.WriteXML(http.StatusBadRequest, result)
+				return
+			}
+			panic(err)
+		}
+		if result == nil {
+			ctx.NoContent(http.StatusNoContent)
 			return
 		}
-		panic(err)
+		ctx.WriteXML(http.StatusOK, result)
 	}
-	if result == nil {
-		ctx.NoContent(http.StatusNoContent)
-		return
-	}
-	ctx.WriteXML(http.StatusOK, result)
 }
 
-func BytesResponseHandle(ctx *easierweb.Context, result any, err error) {
-	if err != nil {
-		if result != nil {
-			ctx.Write(http.StatusBadRequest, result.([]byte))
+func BytesResponseHandle() easierweb.ResponseHandle {
+	return func(ctx *easierweb.Context, result any, err error) {
+		if err != nil {
+			if result != nil {
+				ctx.Write(http.StatusBadRequest, result.([]byte))
+				return
+			}
+			panic(err)
+		}
+		if result == nil {
+			ctx.NoContent(http.StatusNoContent)
 			return
 		}
-		panic(err)
+		ctx.Write(http.StatusOK, result.([]byte))
 	}
-	if result == nil {
-		ctx.NoContent(http.StatusNoContent)
-		return
-	}
-	ctx.Write(http.StatusOK, result.([]byte))
 }

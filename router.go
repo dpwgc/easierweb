@@ -34,9 +34,9 @@ func New(opts ...RouterOptions) *Router {
 	r := &Router{
 		multipartFormMaxMemory: 32 << 20,
 		router:                 httprouter.New(),
-		errorHandle:            defaultErrorHandle,
-		requestHandle:          defaultRequestHandle,
-		responseHandle:         defaultResponseHandle,
+		errorHandle:            defaultErrorHandle(),
+		requestHandle:          defaultRequestHandle(),
+		responseHandle:         defaultResponseHandle(),
 	}
 	for _, v := range opts {
 		if v.RootPath != "" {

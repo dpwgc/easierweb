@@ -19,8 +19,8 @@ func main() {
 	// example: use xml format to process request and response data
 	/*
 		router := easierweb.New(easierweb.RouterOptions{
-			RequestHandle: plugins.XMLRequestHandle,
-			ResponseHandle: plugins.XMLResponseHandle,
+			RequestHandle: plugins.XMLRequestHandle(),
+			ResponseHandle: plugins.XMLResponseHandle(),
 		})
 	*/
 

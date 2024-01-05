@@ -21,7 +21,7 @@ func main() {
 	})
 
 	// set middleware
-	router.Use(DemoMiddleware)
+	router.Use(DemoMiddleware())
 
 	// set handles
 	router.GET("/demoGet/:id", DemoGet)
@@ -185,16 +185,19 @@ func DemoDownload(ctx *easierweb.Context) {
 }
 
 // DemoMiddleware middleware handle
-func DemoMiddleware(ctx *easierweb.Context) {
+func DemoMiddleware() easierweb.Handle {
 
-	// before processing, print the url
-	fmt.Println("\nrequest url:", ctx.Request.URL.String())
+	return func(ctx *easierweb.Context) {
 
-	// next handle
-	ctx.Next()
+		// before processing, print the url
+		fmt.Println("\nrequest url:", ctx.Request.URL.String())
 
-	// after processing, print the result
-	fmt.Println("result:", ctx.Result.String())
+		// next handle
+		ctx.Next()
+
+		// after processing, print the result
+		fmt.Println("result:", string(ctx.Result))
+	}
 }
 
 // DemoCommand write request

@@ -21,7 +21,7 @@ func main() {
 	})
 
 	// use router middleware
-	router.Use(middlewares.Logger)
+	router.Use(middlewares.Logger())
 
 	// create a group, group path is /v2, set group middleware
 	v2Group := router.Group("/v2", timeCost)

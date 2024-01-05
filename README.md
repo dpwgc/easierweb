@@ -69,7 +69,7 @@ import (
 func main() {
 	
    // create a router and set middleware
-   router := easierweb.New().Use(middlewares.Logger)
+   router := easierweb.New().Use(middlewares.Logger())
    
    // set api handle
    router.GET("/hello", hello)
@@ -194,8 +194,8 @@ router.EasyPOST("/test", TestAPI)
 ```go
 // use xml format to process request and response data (global configuration, takes effect for all api)
 router := easierweb.New(easierweb.RouterOptions{
-   RequestHandle: plugins.XMLRequestHandle,
-   ResponseHandle: plugins.XMLResponseHandle,
+   RequestHandle: plugins.XMLRequestHandle(),
+   ResponseHandle: plugins.XMLResponseHandle(),
 })
 ```
 
@@ -223,4 +223,6 @@ func TestAPI(ctx *easierweb.Context, req Request) {
   * easier `easier usage demo`
     * main.go
   * restful `restful application demo`
+    * main.go
+  * customize `custom framework demo`
     * main.go
