@@ -98,9 +98,6 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 			panic(errors.New("handle return values does not match"))
 		}
 
-		// process the return value
-		var resultValue any = nil
-
 		// if just one value return
 		if len(returnValues) == 1 {
 			firstValue, isErr := returnValues[0].Interface().(error)
@@ -110,7 +107,12 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 				r.responseHandle(ctx, nil, firstValue)
 				return
 			}
-		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
+		}
+
+		// get the result value
+		var resultValue any = nil
+
+		if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
 			resultValue = returnValues[0].Elem().Interface()
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Slice {
 			resultValue = returnValues[0].Interface()
@@ -122,8 +124,11 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 			return
 		}
 
-		// has object return and error return
-		errValue, _ := returnValues[1].Interface().(error)
+		// has result return and error return
+		errValue, isErr := returnValues[1].Interface().(error)
+		if !isErr {
+			panic(errors.New("second return value is not error"))
+		}
 		r.responseHandle(ctx, resultValue, errValue)
 	}
 }
