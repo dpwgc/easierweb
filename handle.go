@@ -75,7 +75,7 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 			paramValues[1] = reflect.New(funcType.In(1)).Elem()
 			reqObj = paramValues[1].Addr().Interface()
 		} else {
-			panic(errors.New("response handle parameters does not match"))
+			panic(errors.New("handle input parameters does not match"))
 		}
 
 		if reqObj != nil {
@@ -94,25 +94,29 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 			return
 		}
 
-		firstErrorValue, isErr := returnValues[0].Interface().(error)
+		if len(returnValues) > 2 {
+			panic(errors.New("handle return values does not match"))
+		}
 
 		// process the return value
 		var resultValue any = nil
-		// if first return value is error
-		if isErr {
-			// return error
-			r.responseHandle(ctx, nil, firstErrorValue)
+
+		// if just one value return
+		if len(returnValues) == 1 {
+			firstValue, isErr := returnValues[0].Interface().(error)
+			// if first return value is error
+			if isErr {
+				// return error
+				r.responseHandle(ctx, nil, firstValue)
+			} else {
+				// return result
+				r.responseHandle(ctx, resultValue, nil)
+			}
 			return
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
 			resultValue = returnValues[0].Elem().Interface()
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Slice {
 			resultValue = returnValues[0].Interface()
-		}
-
-		// just one value return
-		if len(returnValues) == 1 {
-			r.responseHandle(ctx, resultValue, nil)
-			return
 		}
 
 		// has object return and error return
@@ -133,11 +137,13 @@ func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.R
 		Path:           map[string]string{},
 		Query:          map[string]string{},
 		Form:           map[string]string{},
+		Body:           nil,
 		Request:        req,
 		ResponseWriter: res,
 		WebsocketConn:  ws,
-		Code:           -1,
+		Code:           0,
 		Result:         nil,
+		written:        false,
 	}
 
 	if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") ||
