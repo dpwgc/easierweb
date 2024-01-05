@@ -1,10 +1,7 @@
 package easierweb
 
 import (
-	"encoding/json"
-	"encoding/xml"
 	"github.com/mitchellh/mapstructure"
-	"gopkg.in/yaml.v3"
 	"strconv"
 )
 
@@ -161,22 +158,4 @@ func (kv Params) Bind(obj any) error {
 		return err
 	}
 	return decoder.Decode(kv)
-}
-
-type Data []byte
-
-func (d Data) String() string {
-	return string(d)
-}
-
-func (d Data) ParseJSON(obj any) error {
-	return json.Unmarshal(d, obj)
-}
-
-func (d Data) ParseYAML(obj any) error {
-	return yaml.Unmarshal(d, obj)
-}
-
-func (d Data) ParseXML(obj any) error {
-	return xml.Unmarshal(d, obj)
 }
