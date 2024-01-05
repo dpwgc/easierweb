@@ -24,7 +24,7 @@ func main() {
 	router.Use(middlewares.Logger())
 
 	// create a group, group path is /v2, set group middleware
-	v2Group := router.Group("/v2", timeCost)
+	v2Group := router.Group("/v2", timeCost())
 	{
 		// set methods
 		v2Group.EasyPOST("/member", memberController.Add)
@@ -39,9 +39,11 @@ func main() {
 }
 
 // middleware
-func timeCost(ctx *easierweb.Context) {
-	start := time.Now().UnixMilli()
-	ctx.Next()
-	end := time.Now().UnixMilli()
-	fmt.Printf("%s -> time cost: %vms \n", ctx.Request.RequestURI, end-start)
+func timeCost() easierweb.Handle {
+	return func(ctx *easierweb.Context) {
+		start := time.Now().UnixMilli()
+		ctx.Next()
+		end := time.Now().UnixMilli()
+		fmt.Printf("%s -> time cost: %vms \n", ctx.Request.RequestURI, end-start)
+	}
 }

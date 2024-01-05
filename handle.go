@@ -108,15 +108,18 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 			if isErr {
 				// return error
 				r.responseHandle(ctx, nil, firstValue)
-			} else {
-				// return result
-				r.responseHandle(ctx, resultValue, nil)
+				return
 			}
-			return
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Ptr && returnValues[0].Elem().IsValid() {
 			resultValue = returnValues[0].Elem().Interface()
 		} else if returnValues[0].IsValid() && returnValues[0].Kind() == reflect.Slice {
 			resultValue = returnValues[0].Interface()
+		}
+
+		// just result return
+		if len(returnValues) == 1 {
+			r.responseHandle(ctx, resultValue, nil)
+			return
 		}
 
 		// has object return and error return

@@ -16,7 +16,8 @@ func CORS() easierweb.Handle {
 		}
 		if ctx.Request.Method == "OPTIONS" {
 			ctx.WriteString(http.StatusOK, "Options Request!")
+		} else {
+			ctx.Next()
 		}
-		ctx.Next()
 	}
 }
