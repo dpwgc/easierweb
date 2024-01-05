@@ -19,15 +19,15 @@ type Context struct {
 	Path           Params
 	Query          Params
 	Form           Params
-	Body           Data
+	Body           []byte
 	Code           int
-	Result         Data
+	Result         []byte
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 	WebsocketConn  *websocket.Conn
 	index          int
 	handles        []Handle
-	isReturned     bool
+	written        bool
 }
 
 func (c *Context) Next() {
@@ -78,21 +78,21 @@ func (c *Context) BindPath(obj any) error {
 // POST Body Bind
 
 func (c *Context) BindJSON(obj any) error {
-	return c.Body.ParseJSON(obj)
+	return json.Unmarshal(c.Body, obj)
 }
 
 func (c *Context) BindYAML(obj any) error {
-	return c.Body.ParseYAML(obj)
+	return yaml.Unmarshal(c.Body, obj)
 }
 
 func (c *Context) BindXML(obj any) error {
-	return c.Body.ParseXML(obj)
+	return xml.Unmarshal(c.Body, obj)
 }
 
 // Result Write
 
 func (c *Context) WriteJSON(code int, obj any) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	marshal, err := json.Marshal(obj)
@@ -103,7 +103,7 @@ func (c *Context) WriteJSON(code int, obj any) {
 }
 
 func (c *Context) WriteYAML(code int, obj any) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	marshal, err := yaml.Marshal(obj)
@@ -114,7 +114,7 @@ func (c *Context) WriteYAML(code int, obj any) {
 }
 
 func (c *Context) WriteXML(code int, obj any) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	marshal, err := xml.Marshal(obj)
@@ -125,14 +125,14 @@ func (c *Context) WriteXML(code int, obj any) {
 }
 
 func (c *Context) Redirect(code int, url string) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	http.Redirect(c.ResponseWriter, c.Request, url, code)
 }
 
 func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	fileBytes, err := os.ReadFile(localFilePath)
@@ -143,7 +143,7 @@ func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
 }
 
 func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	if len(fileName) > 0 {
@@ -160,7 +160,7 @@ func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
 }
 
 func (c *Context) WriteString(code int, text string) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
 	c.Write(code, []byte(text))
@@ -171,17 +171,17 @@ func (c *Context) NoContent(code int) {
 }
 
 func (c *Context) Write(code int, data []byte) {
-	if c.isReturned {
+	if c.written {
 		return
 	}
-	c.Code = code
-	c.Result = data
 	c.ResponseWriter.WriteHeader(code)
 	_, err := c.ResponseWriter.Write(data)
-	c.isReturned = true
 	if err != nil {
 		panic(err)
 	}
+	c.Code = code
+	c.Result = data
+	c.written = true
 }
 
 func (c *Context) SetContentType(value string) {
