@@ -19,8 +19,8 @@
 Simple example of API handle
 
 ```go
-// automatic binding query/form/body data and writing response
-func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
+// HelloAPI automatic binding query/form/body data and writing response
+func HelloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
 
    // print the request data
    fmt.Println("request data ->", request)
@@ -169,7 +169,7 @@ type Response struct {
 
 * If you want to use 'EasyXXX' series functions. The api handle function must be in the following formats.
 
-```go
+```
 // first input parameter must be Context
 // request struct and response struct can be slices ([]Request/*[]Response)
 func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
@@ -180,9 +180,7 @@ func TestAPI(ctx *easierweb.Context) (*Response, error)
 func TestAPI(ctx *easierweb.Context) *Response
 func TestAPI(ctx *easierweb.Context) error
 func TestAPI(ctx *easierweb.Context)
-```
 
-```go
 // set TestAPI handle
 router.EasyPOST("/test", TestAPI)
 ```
@@ -199,7 +197,7 @@ router := easierweb.New(easierweb.RouterOptions{
 })
 ```
 
-* The 'EasyXXX' series functions are compatible with basic usage.
+* The 'EasyXXX' series functions are compatible with basic usage. You can use the 'WriteXXX' series functions to write response.
 
 ```go
 func TestAPI(ctx *easierweb.Context, req Request) {

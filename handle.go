@@ -125,10 +125,7 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 		}
 
 		// has result return and error return
-		errValue, isErr := returnValues[1].Interface().(error)
-		if !isErr {
-			panic(errors.New("second return value is not error"))
-		}
+		errValue, _ := returnValues[1].Interface().(error)
 		r.responseHandle(ctx, resultValue, errValue)
 	}
 }
