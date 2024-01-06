@@ -23,18 +23,24 @@ func Logger() easierweb.Handle {
 		if len(ctx.Path) > 0 {
 			marshal, err := json.Marshal(ctx.Path)
 			if err != nil {
+				path = err.Error()
+			} else {
 				path = string(marshal)
 			}
 		}
 		if len(ctx.Query) > 0 {
 			marshal, err := json.Marshal(ctx.Query)
 			if err != nil {
+				query = err.Error()
+			} else {
 				query = string(marshal)
 			}
 		}
 		if len(ctx.Form) > 0 {
 			marshal, err := json.Marshal(ctx.Form)
 			if err != nil {
+				form = err.Error()
+			} else {
 				form = string(marshal)
 			}
 		}
@@ -50,11 +56,11 @@ func Logger() easierweb.Handle {
 			if len(ctx.Result) > sizeLimit {
 				result = "result is too large"
 			} else {
-				result = string(ctx.Body)
+				result = string(ctx.Result)
 			}
 		}
 
-		ctx.Info("HTTP", slog.String("method", ctx.Request.Method),
+		ctx.Info(ctx.Proto(), slog.String("method", ctx.Request.Method),
 			slog.String("url", ctx.Request.URL.String()),
 			slog.String("client", ctx.Request.RemoteAddr),
 			slog.String("path", path),
