@@ -54,7 +54,7 @@ func Logger() easierweb.Handle {
 			}
 		}
 
-		slog.Info("HTTP", slog.String("method", ctx.Request.Method),
+		ctx.Info("HTTP", slog.String("method", ctx.Request.Method),
 			slog.String("url", ctx.Request.URL.String()),
 			slog.String("client", ctx.Request.RemoteAddr),
 			slog.String("path", path),

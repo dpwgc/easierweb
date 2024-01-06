@@ -3,13 +3,12 @@ package plugins
 import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
-	"log/slog"
 	"net/http"
 )
 
 func JSONErrorHandle(returnError bool) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		slog.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		ctx.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
 		res := make(map[string]string, 1)
 		if returnError {
 			res["error"] = fmt.Sprintf("%s", err)
@@ -22,7 +21,7 @@ func JSONErrorHandle(returnError bool) easierweb.ErrorHandle {
 
 func YAMLErrorHandle(returnError bool) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		slog.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		ctx.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
 		res := make(map[string]string, 1)
 		if returnError {
 			res["error"] = fmt.Sprintf("%s", err)
@@ -35,7 +34,7 @@ func YAMLErrorHandle(returnError bool) easierweb.ErrorHandle {
 
 func XMLErrorHandle(returnError bool) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		slog.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		ctx.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
 		res := make(map[string]string, 1)
 		if returnError {
 			res["error"] = fmt.Sprintf("%s", err)
@@ -48,7 +47,7 @@ func XMLErrorHandle(returnError bool) easierweb.ErrorHandle {
 
 func StringErrorHandle(returnError bool) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		slog.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		ctx.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
 		res := "unexpected error"
 		if returnError {
 			res = fmt.Sprintf("%s", err)
