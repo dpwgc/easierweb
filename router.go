@@ -11,6 +11,16 @@ import (
 	"net/http"
 )
 
+const (
+	GET     = "GET"
+	HEAD    = "HEAD"
+	OPTIONS = "OPTIONS"
+	POST    = "POST"
+	PUT     = "PUT"
+	PATCH   = "PATCH"
+	DELETE  = "DELETE"
+)
+
 type RouterOptions struct {
 	RootPath               string
 	MultipartFormMaxMemory int64
@@ -70,72 +80,72 @@ func New(opts ...RouterOptions) *Router {
 // easier usage function
 
 func (r *Router) EasyGET(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.GET(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(GET, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyHEAD(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.HEAD(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(HEAD, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyOPTIONS(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.OPTIONS(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(OPTIONS, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPOST(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.POST(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(POST, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPUT(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.PUT(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(PUT, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPATCH(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.PATCH(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(PATCH, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyDELETE(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.DELETE(path, r.easyHandle(easyHandle), middlewares...)
-}
-
-func (r *Router) EasyAny(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.Any(path, r.easyHandle(easyHandle), middlewares...)
+	return r.EasyHandle(DELETE, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyHandle(method, path string, easyHandle any, middlewares ...Handle) *Router {
 	return r.Handle(method, path, r.easyHandle(easyHandle), middlewares...)
 }
 
+func (r *Router) EasyAny(path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.Any(path, r.easyHandle(easyHandle), middlewares...)
+}
+
 // basic usage function
 
 func (r *Router) GET(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("GET", path, handle, middlewares...)
+	return r.Handle(GET, path, handle, middlewares...)
 }
 
 func (r *Router) HEAD(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("HEAD", path, handle, middlewares...)
+	return r.Handle(HEAD, path, handle, middlewares...)
 }
 
 func (r *Router) OPTIONS(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("OPTIONS", path, handle, middlewares...)
+	return r.Handle(OPTIONS, path, handle, middlewares...)
 }
 
 func (r *Router) POST(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("POST", path, handle, middlewares...)
+	return r.Handle(POST, path, handle, middlewares...)
 }
 
 func (r *Router) PUT(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("PUT", path, handle, middlewares...)
+	return r.Handle(PUT, path, handle, middlewares...)
 }
 
 func (r *Router) PATCH(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("PATCH", path, handle, middlewares...)
+	return r.Handle(PATCH, path, handle, middlewares...)
 }
 
 func (r *Router) DELETE(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle("DELETE", path, handle, middlewares...)
+	return r.Handle(DELETE, path, handle, middlewares...)
 }
 
-var methodNames = []string{"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}
+var methodNames = []string{GET, HEAD, OPTIONS, POST, PUT, PATCH, DELETE}
 
 func (r *Router) Any(path string, handle Handle, middlewares ...Handle) *Router {
 	for _, method := range methodNames {
