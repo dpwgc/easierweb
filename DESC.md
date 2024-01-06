@@ -34,7 +34,7 @@ router.PUT("/hello", hello)
 router.PATCH("/hello", hello)
 router.DELETE("/hello", hello)
 router.Any("/hello", hello)
-router.Handle("/hello", hello)
+router.Handle("GET", "/hello", hello)
 
 // APIs (easier usage)
 router.EasyGET("/hello", hello)
@@ -45,7 +45,7 @@ router.EasyPUT("/hello", hello)
 router.EasyPATCH("/hello", hello)
 router.EasyDELETE("/hello", hello)
 router.EasyAny("/hello", hello)
-router.EasyHandle("/hello", hello)
+router.EasyHandle("GET", "/hello", hello)
 ```
 
 ### Set Other Handle
@@ -217,6 +217,7 @@ ctx.Info("hello")
 ctx.Debug("hello")
 ctx.Warn("hello")
 ctx.Error(errors.New("hello"))
+// log error and panic error
 ctx.Panic(errors.New("hello"))
 ```
 
@@ -224,19 +225,24 @@ ctx.Panic(errors.New("hello"))
 
 ## easierweb.Params 
 
-#### `ctx.Path` `ctx.Query` `ctx.Form` `ctx.Header`
+### `ctx.Path` `ctx.Query` `ctx.Form` `ctx.Header`
 
 ### Base
 
 ```go
+// get all keys
 ctx.Query.Keys()
+// get all values
 ctx.Query.Values()
+// get value (string) by key
 ctx.Query.Get("hello")
+// check whether the key exists
 ctx.Query.Has("hello")
+// set key-value
 ctx.Query.Set("hello", "world")
+// delete key
 ctx.Query.Del("hello")
-ctx.Query.Error(errors.New("hello"))
-ctx.Query.Panic(errors.New("hello"))
+// bind struct
 ctx.Query.Bind(&request)
 ```
 
