@@ -1,13 +1,20 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/dpwgc/easierweb"
+	"github.com/dpwgc/easierweb/plugins"
+	"golang.org/x/net/http2"
 	"log/slog"
 	"net/http"
 )
 
+// you can customize error, request, and response handle functions
+// or use the plugin provided by the framework
 func main() {
+
+	// customize
 	easierweb.New(easierweb.RouterOptions{
 		// customize unexpected error handling logic
 		ErrorHandle: customErrorHandle(),
@@ -20,6 +27,28 @@ func main() {
 		// whether to turn off console output
 		CloseConsolePrint: false,
 	})
+
+	// use framework plugins
+	router := easierweb.New(easierweb.RouterOptions{
+		// respond to error messages in xml format
+		ErrorHandle: plugins.XMLErrorHandle(false),
+		// request data is parsed and automatically bound using xml format
+		RequestHandle: plugins.XMLRequestHandle(),
+		// write response data in xml format
+		ResponseHandle: plugins.XMLResponseHandle(),
+	})
+
+	// configure TLS and start router
+	err := router.RunTLS("127.0.0.1:8080", "cert.pem", "private.key", &tls.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	// configure TLS + HTTP2 and start router
+	err = router.RunHTTP2("127.0.0.1:8080", "cert.pem", "private.key", &tls.Config{}, &http2.Server{})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func customErrorHandle() easierweb.ErrorHandle {
