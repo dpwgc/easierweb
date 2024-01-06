@@ -68,6 +68,12 @@ func (g *Group) EasyAny(path string, easyHandle any, middlewares ...Handle) *Gro
 	return g
 }
 
+func (g *Group) EasyHandle(method, path string, easyHandle any, middlewares ...Handle) *Group {
+	middlewares = append(g.middlewares, middlewares...)
+	g.router.EasyHandle(method, g.path+path, easyHandle, middlewares...)
+	return g
+}
+
 // basic usage function
 
 func (g *Group) GET(path string, handle Handle, middlewares ...Handle) *Group {
@@ -118,9 +124,21 @@ func (g *Group) Any(path string, handle Handle, middlewares ...Handle) *Group {
 	return g
 }
 
+func (g *Group) Handle(method, path string, handle Handle, middlewares ...Handle) *Group {
+	middlewares = append(g.middlewares, middlewares...)
+	g.router.Handle(method, g.path+path, handle, middlewares...)
+	return g
+}
+
 func (g *Group) WS(path string, handle Handle, middlewares ...Handle) *Group {
 	middlewares = append(g.middlewares, middlewares...)
 	g.router.WS(g.path+path, handle, middlewares...)
+	return g
+}
+
+func (g *Group) SSE(path string, handle Handle, middlewares ...Handle) *Group {
+	middlewares = append(g.middlewares, middlewares...)
+	g.router.SSE(g.path+path, handle, middlewares...)
 	return g
 }
 
