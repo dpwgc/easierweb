@@ -25,7 +25,7 @@ type Router struct {
 	rootPath               string
 	multipartFormMaxMemory int64
 	router                 *httprouter.Router
-	server                 http.Server
+	server                 *http.Server
 	middlewares            []Handle
 	errorHandle            ErrorHandle
 	requestHandle          RequestHandle
@@ -192,29 +192,41 @@ func (r *Router) Use(middlewares ...Handle) *Router {
 }
 
 func (r *Router) Run(addr string) error {
-	r.consoleStartPrint(addr)
-	r.server = http.Server{
-		Addr:    addr,
-		Handler: r.router,
-	}
-	return r.server.ListenAndServe()
-}
-
-func (r *Router) RunHTTP2(addr string, certFile string, keyFile string, tlsConfig *tls.Config, http2Server *http2.Server) error {
-	err := http2.ConfigureServer(&r.server, http2Server)
-	if err != nil {
-		return err
-	}
-	return r.RunTLS(addr, certFile, keyFile, tlsConfig)
+	return r.Serve(&http.Server{
+		Addr: addr,
+	})
 }
 
 func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig *tls.Config) error {
-	r.consoleStartPrint(addr)
-	r.server = http.Server{
+	return r.ServeTLS(&http.Server{
 		Addr:      addr,
-		Handler:   r.router,
+		TLSConfig: tlsConfig,
+	}, certFile, keyFile)
+}
+
+func (r *Router) RunHTTP2(addr string, certFile string, keyFile string, tlsConfig *tls.Config, http2Server *http2.Server) error {
+	server := &http.Server{
+		Addr:      addr,
 		TLSConfig: tlsConfig,
 	}
+	err := http2.ConfigureServer(server, http2Server)
+	if err != nil {
+		return err
+	}
+	return r.ServeTLS(server, certFile, keyFile)
+}
+
+func (r *Router) Serve(server *http.Server) error {
+	r.server = server
+	r.server.Handler = r.router
+	r.consoleStartPrint(r.server.Addr)
+	return r.server.ListenAndServe()
+}
+
+func (r *Router) ServeTLS(server *http.Server, certFile string, keyFile string) error {
+	r.server = server
+	r.server.Handler = r.router
+	r.consoleStartPrint(r.server.Addr)
 	return r.server.ListenAndServeTLS(certFile, keyFile)
 }
 
@@ -227,5 +239,5 @@ func (r *Router) consoleStartPrint(addr string) {
 		return
 	}
 	fmt.Println("  ______          _        __          __  _     \n |  ____|        (_)       \\ \\        / / | |    \n | |__   __ _ ___ _  ___ _ _\\ \\  /\\  / /__| |__  \n |  __| / _` / __| |/ _ \\ '__\\ \\/  \\/ / _ \\ '_ \\ \n | |___| (_| \\__ \\ |  __/ |   \\  /\\  /  __/ |_) |\n |______\\__,_|___/_|\\___|_|    \\/  \\/ \\___|_.__/")
-	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf(" >>> http server runs on [%s] ", addr))
+	fmt.Printf("\033[1;32;40m%s\033[0m\n", fmt.Sprintf(" >>> server runs on [%s] ", addr))
 }
