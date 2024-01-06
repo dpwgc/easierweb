@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/net/http2"
 	"golang.org/x/net/websocket"
 	"log/slog"
 	"net/http"
@@ -212,18 +211,6 @@ func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig 
 		Addr:      addr,
 		TLSConfig: tlsConfig,
 	}, certFile, keyFile)
-}
-
-func (r *Router) RunHTTP2(addr string, certFile string, keyFile string, tlsConfig *tls.Config, http2Server *http2.Server) error {
-	server := &http.Server{
-		Addr:      addr,
-		TLSConfig: tlsConfig,
-	}
-	err := http2.ConfigureServer(server, http2Server)
-	if err != nil {
-		return err
-	}
-	return r.ServeTLS(server, certFile, keyFile)
 }
 
 func (r *Router) Serve(server *http.Server) error {
