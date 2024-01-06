@@ -65,7 +65,7 @@ func (c *Context) GetFile(key string) (multipart.File, error) {
 	return file, nil
 }
 
-// Query/Form/Path Params Bind
+// Query/Form/Path/Header Params Bind
 
 func (c *Context) BindQuery(obj any) error {
 	return c.Query.Bind(obj)
@@ -77,6 +77,10 @@ func (c *Context) BindForm(obj any) error {
 
 func (c *Context) BindPath(obj any) error {
 	return c.Path.Bind(obj)
+}
+
+func (c *Context) BindHeader(obj any) error {
+	return c.Header.Bind(obj)
 }
 
 // POST Body Bind

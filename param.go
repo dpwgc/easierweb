@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// query/path/form parameters
+// query/path/form/header parameters
 
 type Params map[string]string
 
