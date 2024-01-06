@@ -19,8 +19,8 @@
 Simple example of API handle
 
 ```go
-// HelloAPI automatic binding query/form/body data and writing response
-func HelloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
+// automatic binding query/form/body data and writing response
+func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
 
    // print the request data
    fmt.Println("request data ->", request)
@@ -59,36 +59,40 @@ go get github.com/dpwgc/easierweb
 package main
 
 import (
-  "github.com/dpwgc/easierweb"
-  "github.com/dpwgc/easierweb/middlewares"
-  "log"
-  "net/http"
+   "github.com/dpwgc/easierweb"
+   "github.com/dpwgc/easierweb/middlewares"
+   "log"
+   "net/http"
 )
 
 // basic usage example
 func main() {
-	
+
    // create a router and set middleware
    router := easierweb.New().Use(middlewares.Logger())
-   
+
    // set api handle
-   router.GET("/hello", hello)
-   
+   router.GET("/hello/:name", hello)
+
    // runs on port 80
    log.Fatal(router.Run(":80"))
 }
 
-// get method request handle
+// request handle
 func hello(ctx *easierweb.Context) {
-	
-   // Write response, return 'hello'
-   ctx.WriteString(http.StatusOK, "hello")
+
+   // get the path parameters
+   name := ctx.Path.Get("name")
+
+   // Write response, return 'hello ' + 'name'
+   ctx.WriteString(http.StatusOK, "hello "+name)
 }
+
 ```
 
 ### Access the HTTP URL in your browser
 
-> `GET` http://localhost/hello
+> `GET` http://localhost/hello/easierweb
 
 ***
 
@@ -186,8 +190,7 @@ router.EasyPOST("/test", TestAPI)
 ```
 
 * Framework default use json format to process request and response data.
-* If you want to change the format, you can use the plugin, framework comes with multiple plugins.
-* When creating router, use 'RouterOptions' to set up the plugins.
+* If you want to change the format. You can use the plugins provided by the framework as described below. Or you can implement them by yourself.
 
 ```go
 // use xml format to process request and response data (global configuration, takes effect for all api)
@@ -207,6 +210,9 @@ func TestAPI(ctx *easierweb.Context, req Request) {
    // write xml response
    ctx.WriteXML(http.StatusOK, Response{Code: 1000, Msg:  "hello"})
 }
+
+// set TestAPI handle
+router.EasyPOST("/test", TestAPI)
 ```
 
 ***
