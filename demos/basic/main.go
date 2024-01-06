@@ -32,7 +32,10 @@ func main() {
 	// set websocket handle
 	router.WS("/demoWS/:id", DemoWS)
 
-	// static File Service (access the demo directory)
+	// set server-sent events handle
+	router.SSE("/demoSSE/:id", DemoSSE)
+
+	// static file service (access the demo directory)
 	router.Static("/demoStatic/*filepath", "demo")
 
 	// started on port 80
@@ -182,6 +185,34 @@ func DemoDownload(ctx *easierweb.Context) {
 
 	// returns the byte data of the file directly
 	// ctx.WriteFile("", ctx.Path.Get("fileName"), []byte{})
+}
+
+// DemoSSE server-sent events handle
+// http://localhost/test/demoSSE/123
+func DemoSSE(ctx *easierweb.Context) {
+
+	// print the uri parameter
+	fmt.Println("id:", ctx.Path.Int64("id"))
+
+	for i := 0; i < 5; i++ {
+
+		// push string message, split the message with '\n\n'
+		err := ctx.Push(fmt.Sprintf("sse push %v", i), "\n\n")
+		if err != nil {
+			panic(err)
+		}
+
+		// push json message, split the message with '\n\n'
+		err = ctx.PushJSON(DemoResultDTO{
+			Msg:  "hello world",
+			Data: "Server-sent Events",
+		}, "\n\n")
+		if err != nil {
+			panic(err)
+		}
+
+		time.Sleep(1 * time.Second)
+	}
 }
 
 // DemoMiddleware middleware handle
