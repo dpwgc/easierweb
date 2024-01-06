@@ -11,7 +11,7 @@ import (
 
 // basic usage demo
 // basic usage, like gin and echo
-// includes common interfaces, websocket connection, file upload and download, static file service, middleware
+// includes common APIs, websocket connection, server-send events(SSE), file upload and download, static file service, middleware
 func main() {
 
 	// create a router, root path is /test
