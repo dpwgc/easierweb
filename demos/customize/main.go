@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
 	"github.com/dpwgc/easierweb/plugins"
-	"golang.org/x/net/http2"
 	"log/slog"
 	"net/http"
 )
@@ -40,12 +39,6 @@ func main() {
 
 	// configure TLS and start router
 	err := router.RunTLS("127.0.0.1:8080", "cert.pem", "private.key", &tls.Config{})
-	if err != nil {
-		panic(err)
-	}
-
-	// configure TLS + HTTP2 and start router
-	err = router.RunHTTP2("127.0.0.1:8080", "cert.pem", "private.key", &tls.Config{}, &http2.Server{})
 	if err != nil {
 		panic(err)
 	}
