@@ -2,6 +2,7 @@ package easierweb
 
 import (
 	"errors"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/websocket"
 	"io"
@@ -18,7 +19,7 @@ type ResponseHandle func(ctx *Context, result any, err error)
 
 type ErrorHandle func(ctx *Context, err any)
 
-func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) {
+func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, sse bool, middlewares ...Handle) {
 
 	ctx, err := r.buildContext(route, res, req, par, ws, middlewares...)
 
@@ -33,6 +34,18 @@ func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, re
 		panic(err)
 	}
 
+	if sse {
+		res.Header().Set("Content-Type", "text/event-stream")
+		res.Header().Set("Cache-Control", "no-cache")
+		res.Header().Set("Connection", "keep-alive")
+		res.Header().Set("Access-Control-Allow-Origin", "*")
+		flusher, ok := res.(http.Flusher)
+		if !ok {
+			panic("client does not support server-sent events")
+		}
+		ctx.Flusher = flusher
+	}
+
 	// middleware execution
 	ctx.handles = append(ctx.handles, handle)
 	for ctx.index < len(ctx.handles) {
@@ -42,7 +55,7 @@ func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, re
 
 	// if a websocket connection exists, the websocket connection is automatically closed when the function returns
 	if ws != nil {
-		err = ws.Close()
+		err = ctx.Close()
 		if err != nil {
 			panic(err)
 		}
@@ -132,6 +145,13 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 
 func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) (*Context, error) {
 
+	defer func() {
+		err := recover()
+		if err != nil {
+			r.logger.Error(fmt.Sprintf("build context error: %s", err))
+		}
+	}()
+
 	handles := append([]Handle(nil), r.middlewares...)
 	handles = append(handles, middlewares...)
 	ctx := Context{
@@ -146,9 +166,11 @@ func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.R
 		Request:        req,
 		ResponseWriter: res,
 		WebsocketConn:  ws,
+		Logger:         r.logger,
 		Code:           0,
 		Result:         nil,
 		written:        false,
+		closed:         false,
 	}
 
 	if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") ||
