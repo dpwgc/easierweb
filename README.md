@@ -10,7 +10,7 @@
 * Have a more concise way to write API. Can automatic binding query/form/body data and writing response.
 * Highly customizable. Custom error capture and request/response data handling.
 * No dependencies on too many third-party packages. Architecture is simple.
-* Built-in convenient websocket, server-sent events, file service functions.
+* Built-in convenient websocket, server-sent events(SSE), file server functions.
 * Group APIs. Custom root-level, group-level, function-level middleware.
 * Support TLS and HTTP2.
 
