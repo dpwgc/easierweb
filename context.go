@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"golang.org/x/net/websocket"
 	"gopkg.in/yaml.v3"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -25,9 +26,12 @@ type Context struct {
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 	WebsocketConn  *websocket.Conn
+	Flusher        http.Flusher
+	Logger         *slog.Logger
 	index          int
 	handles        []Handle
 	written        bool
+	closed         bool
 }
 
 func (c *Context) Next() {
@@ -280,6 +284,55 @@ func (c *Context) Send(msg []byte) error {
 	return nil
 }
 
+// WS Close
+
+func (c *Context) Close() error {
+	if c.closed {
+		return nil
+	}
+	err := c.WebsocketConn.Close()
+	if err != nil {
+		return err
+	}
+	c.closed = true
+	return nil
+}
+
+// SSE Push
+
+func (c *Context) PushJSON(obj any, split string) error {
+	marshal, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return c.Push(string(marshal), split)
+}
+
+func (c *Context) PushYAML(obj any, split string) error {
+	marshal, err := yaml.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return c.Push(string(marshal), split)
+}
+
+func (c *Context) PushXML(obj any, split string) error {
+	marshal, err := xml.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return c.Push(string(marshal), split)
+}
+
+func (c *Context) Push(msg string, split string) error {
+	_, err := fmt.Fprintf(c.ResponseWriter, fmt.Sprintf("%s%s", msg, split))
+	if err != nil {
+		return err
+	}
+	c.Flusher.Flush()
+	return nil
+}
+
 // Other request parameters
 
 func (c *Context) GetCookie(name string) (*http.Cookie, error) {
@@ -312,4 +365,27 @@ func (c *Context) Host() string {
 
 func (c *Context) Proto() string {
 	return c.Request.Proto
+}
+
+// log
+
+func (c *Context) Info(msg string, args ...any) {
+	c.Logger.Info(msg, args...)
+}
+
+func (c *Context) Debug(msg string, args ...any) {
+	c.Logger.Debug(msg, args...)
+}
+
+func (c *Context) Warn(msg string, args ...any) {
+	c.Logger.Warn(msg, args...)
+}
+
+func (c *Context) Error(err any, args ...any) {
+	c.Logger.Error(fmt.Sprintf("%s", err), args...)
+}
+
+func (c *Context) Panic(err any, args ...any) {
+	c.Error(err, args...)
+	panic(err)
 }

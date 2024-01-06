@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/websocket"
+	"log/slog"
 	"net/http"
 )
 
@@ -15,6 +16,7 @@ type RouterOptions struct {
 	ErrorHandle            ErrorHandle
 	RequestHandle          RequestHandle
 	ResponseHandle         ResponseHandle
+	Logger                 *slog.Logger
 	CloseConsolePrint      bool
 }
 
@@ -27,6 +29,7 @@ type Router struct {
 	errorHandle            ErrorHandle
 	requestHandle          RequestHandle
 	responseHandle         ResponseHandle
+	logger                 *slog.Logger
 	closeConsolePrint      bool
 }
 
@@ -37,6 +40,7 @@ func New(opts ...RouterOptions) *Router {
 		errorHandle:            defaultErrorHandle(),
 		requestHandle:          defaultRequestHandle(),
 		responseHandle:         defaultResponseHandle(),
+		logger:                 slog.Default(),
 	}
 	for _, v := range opts {
 		if v.RootPath != "" {
@@ -53,6 +57,9 @@ func New(opts ...RouterOptions) *Router {
 		}
 		if v.ResponseHandle != nil {
 			r.responseHandle = v.ResponseHandle
+		}
+		if v.Logger != nil {
+			r.logger = v.Logger
 		}
 		r.closeConsolePrint = v.CloseConsolePrint
 	}
@@ -139,7 +146,7 @@ func (r *Router) Any(path string, handle Handle, middlewares ...Handle) *Router 
 func (r *Router) Handle(method, path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.Handle(method, route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
-		r.handle(route, handle, res, req, par, nil, middlewares...)
+		r.handle(route, handle, res, req, par, nil, false, middlewares...)
 	})
 	return r
 }
@@ -149,13 +156,21 @@ func (r *Router) WS(path string, handle Handle, middlewares ...Handle) *Router {
 	r.router.GET(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		websocket.Server{
 			Handler: func(ws *websocket.Conn) {
-				r.handle(route, handle, res, req, par, ws, middlewares...)
+				r.handle(route, handle, res, req, par, ws, false, middlewares...)
 			},
 			Handshake: func(config *websocket.Config, req *http.Request) error {
 				// 解决跨域
 				return nil
 			},
 		}.ServeHTTP(res, req)
+	})
+	return r
+}
+
+func (r *Router) SSE(path string, handle Handle, middlewares ...Handle) *Router {
+	route := r.rootPath + path
+	r.router.GET(route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
+		r.handle(route, handle, res, req, par, nil, true, middlewares...)
 	})
 	return r
 }
