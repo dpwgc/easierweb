@@ -10,9 +10,9 @@
 * Have a more concise way to write API. Can automatic binding query/form/body data and writing response.
 * Highly customizable. Custom error capture and request/response data handling.
 * No dependencies on too many third-party packages. Architecture is simple.
-* Group APIs. Custom root-level, group-level, function-level middleware.
 * Built-in convenient websocket, server-sent events, file service functions.
-* Support TLS.
+* Group APIs. Custom root-level, group-level, function-level middleware.
+* Support TLS and HTTP2.
 
 ***
 
@@ -169,7 +169,7 @@ type Response struct {
 
 * If you want to use 'EasyXXX' series functions. The api handle function must be in the following formats.
 
-```
+```go
 // first input parameter must be Context
 // request struct and response struct can be slices ([]Request/*[]Response)
 func TestAPI(ctx *easierweb.Context, req Request) (*Response, error)
@@ -222,5 +222,5 @@ func TestAPI(ctx *easierweb.Context, req Request) {
     * main.go
   * restful `restful application demo`
     * main.go
-  * customize `custom framework demo`
+  * customize `customize framework configuration demo`
     * main.go
