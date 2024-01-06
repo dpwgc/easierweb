@@ -200,6 +200,14 @@ func (r *Router) Run(addr string) error {
 	return r.server.ListenAndServe()
 }
 
+func (r *Router) RunHTTP2(addr string, certFile string, keyFile string, tlsConfig *tls.Config, http2Server *http2.Server) error {
+	err := http2.ConfigureServer(&r.server, http2Server)
+	if err != nil {
+		return err
+	}
+	return r.RunTLS(addr, certFile, keyFile, tlsConfig)
+}
+
 func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig *tls.Config) error {
 	r.consoleStartPrint(addr)
 	r.server = http.Server{
@@ -208,14 +216,6 @@ func (r *Router) RunTLS(addr string, certFile string, keyFile string, tlsConfig 
 		TLSConfig: tlsConfig,
 	}
 	return r.server.ListenAndServeTLS(certFile, keyFile)
-}
-
-func (r *Router) RunHTTP2(addr string, certFile string, keyFile string, tlsConfig *tls.Config, http2Server *http2.Server) error {
-	err := http2.ConfigureServer(&r.server, http2Server)
-	if err != nil {
-		return err
-	}
-	return r.RunTLS(addr, certFile, keyFile, tlsConfig)
 }
 
 func (r *Router) Close() error {
