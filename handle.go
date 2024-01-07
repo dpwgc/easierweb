@@ -2,13 +2,10 @@ package easierweb
 
 import (
 	"errors"
-	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/websocket"
-	"io"
 	"net/http"
 	"reflect"
-	"strings"
 )
 
 type Handle func(ctx *Context)
@@ -21,9 +18,14 @@ type ErrorHandle func(ctx *Context, err any)
 
 func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, sse bool, middlewares ...Handle) {
 
-	ctx, err := r.buildContext(route, res, req, par, ws, middlewares...)
+	ctx := r.contextPool.Get().(*Context)
+
+	err := setContext(ctx, r, route, res, req, par, ws, middlewares...)
 
 	defer func() {
+		if ctx != nil {
+			r.contextPool.Put(ctx)
+		}
 		sErr := recover()
 		if sErr != nil && r.errorHandle != nil {
 			r.errorBottomUp(ctx, sErr)
@@ -141,93 +143,6 @@ func (r *Router) easyHandle(easyHandle any) Handle {
 		errValue, _ := returnValues[1].Interface().(error)
 		r.responseHandle(ctx, resultValue, errValue)
 	}
-}
-
-func (r *Router) buildContext(route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) (*Context, error) {
-
-	defer func() {
-		err := recover()
-		if err != nil {
-			r.logger.Error(fmt.Sprintf("build context error: %s", err))
-		}
-	}()
-
-	handles := append([]Handle(nil), r.middlewares...)
-	handles = append(handles, middlewares...)
-	ctx := Context{
-		Route:          route,
-		index:          0,
-		handles:        handles,
-		Header:         map[string]string{},
-		Path:           map[string]string{},
-		Query:          map[string]string{},
-		Form:           map[string]string{},
-		Body:           nil,
-		Request:        req,
-		ResponseWriter: res,
-		WebsocketConn:  ws,
-		Logger:         r.logger,
-		Code:           0,
-		Result:         nil,
-		written:        false,
-		closed:         false,
-	}
-
-	if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") ||
-		strings.Contains(strings.ToLower(req.Header.Get("content-type")), "multipart/form-data") {
-		err := req.ParseMultipartForm(r.multipartFormMaxMemory)
-		if err != nil {
-			return nil, err
-		}
-	} else if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "application/x-www-form-urlencoded") ||
-		strings.Contains(strings.ToLower(req.Header.Get("content-type")), "application/x-www-form-urlencoded") {
-		err := req.ParseForm()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		bodyBytes, err := io.ReadAll(req.Body)
-		if err != nil {
-			return nil, err
-		}
-		ctx.Body = bodyBytes
-	}
-
-	if len(req.Header) > 0 {
-		ctx.Header = make(map[string]string, len(req.Header))
-		for k, v := range req.Header {
-			if len(v) > 0 {
-				ctx.Header[k] = v[0]
-			}
-		}
-	}
-
-	if len(par) > 0 {
-		ctx.Path = make(map[string]string, len(par))
-		for _, v := range par {
-			ctx.Path[v.Key] = v.Value
-		}
-	}
-
-	if len(req.URL.Query()) > 0 {
-		ctx.Query = make(map[string]string, len(req.URL.Query()))
-		for k, v := range req.URL.Query() {
-			if len(v) > 0 {
-				ctx.Query[k] = v[0]
-			}
-		}
-	}
-
-	if len(req.PostForm) > 0 {
-		ctx.Form = make(map[string]string, len(req.PostForm))
-		for k, v := range req.PostForm {
-			if len(v) > 0 {
-				ctx.Form[k] = v[0]
-			}
-		}
-	}
-
-	return &ctx, nil
 }
 
 func (r *Router) errorBottomUp(ctx *Context, err any) {

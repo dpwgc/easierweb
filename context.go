@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/websocket"
 	"gopkg.in/yaml.v3"
+	"io"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -20,9 +23,9 @@ type Context struct {
 	Path           Params
 	Query          Params
 	Form           Params
-	Body           []byte
+	Body           Data
 	Code           int
-	Result         []byte
+	Result         Data
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 	WebsocketConn  *websocket.Conn
@@ -86,15 +89,15 @@ func (c *Context) BindHeader(obj any) error {
 // POST Body Bind
 
 func (c *Context) BindJSON(obj any) error {
-	return json.Unmarshal(c.Body, obj)
+	return c.Body.ParseJSON(obj)
 }
 
 func (c *Context) BindYAML(obj any) error {
-	return yaml.Unmarshal(c.Body, obj)
+	return c.Body.ParseYAML(obj)
 }
 
 func (c *Context) BindXML(obj any) error {
-	return xml.Unmarshal(c.Body, obj)
+	return c.Body.ParseXML(obj)
 }
 
 // Result Write
@@ -392,4 +395,92 @@ func (c *Context) Error(err any, args ...any) {
 func (c *Context) Panic(err any, args ...any) {
 	c.Error(err, args...)
 	panic(err)
+}
+
+// Set
+
+func setContext(ctx *Context, router *Router, route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) error {
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			router.logger.Error(fmt.Sprintf("set context error: %s", err))
+		}
+	}()
+
+	handles := append([]Handle(nil), router.middlewares...)
+	handles = append(handles, middlewares...)
+	ctx.Route = route
+	ctx.index = 0
+	ctx.handles = handles
+	ctx.Header = nil
+	ctx.Path = nil
+	ctx.Query = nil
+	ctx.Form = nil
+	ctx.Body = nil
+	ctx.Request = req
+	ctx.ResponseWriter = res
+	ctx.WebsocketConn = ws
+	ctx.Flusher = nil
+	ctx.Logger = router.logger
+	ctx.Code = 0
+	ctx.Result = nil
+	ctx.written = false
+	ctx.closed = false
+
+	if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "multipart/form-data") ||
+		strings.Contains(strings.ToLower(req.Header.Get("content-type")), "multipart/form-data") {
+		err := req.ParseMultipartForm(router.multipartFormMaxMemory)
+		if err != nil {
+			return err
+		}
+	} else if strings.Contains(strings.ToLower(req.Header.Get("Content-Type")), "application/x-www-form-urlencoded") ||
+		strings.Contains(strings.ToLower(req.Header.Get("content-type")), "application/x-www-form-urlencoded") {
+		err := req.ParseForm()
+		if err != nil {
+			return err
+		}
+	} else {
+		bodyBytes, err := io.ReadAll(req.Body)
+		if err != nil {
+			return err
+		}
+		ctx.Body = bodyBytes
+	}
+
+	if len(req.Header) > 0 {
+		ctx.Header = make(map[string]string, len(req.Header))
+		for k, v := range req.Header {
+			if len(v) > 0 {
+				ctx.Header[k] = v[0]
+			}
+		}
+	}
+
+	if len(par) > 0 {
+		ctx.Path = make(map[string]string, len(par))
+		for _, v := range par {
+			ctx.Path[v.Key] = v.Value
+		}
+	}
+
+	if len(req.URL.Query()) > 0 {
+		ctx.Query = make(map[string]string, len(req.URL.Query()))
+		for k, v := range req.URL.Query() {
+			if len(v) > 0 {
+				ctx.Query[k] = v[0]
+			}
+		}
+	}
+
+	if len(req.PostForm) > 0 {
+		ctx.Form = make(map[string]string, len(req.PostForm))
+		for k, v := range req.PostForm {
+			if len(v) > 0 {
+				ctx.Form[k] = v[0]
+			}
+		}
+	}
+
+	return nil
 }
