@@ -86,7 +86,7 @@ func groupTeatApi(ctx *Context) {
 
 func groupTeatHttpClient(method, uri, body string) {
 	fmt.Printf("\n[TestGroup](groupTeatHttpClient) request method: %s, uri: %s, body: %s \n", method, uri, body)
-	code, result, err := HTTP(method, "http://localhost/test/group"+uri, []byte(body))
+	code, result, err := requestDo(method, "http://localhost/test/group"+uri, []byte(body))
 	if err != nil {
 		panic(err)
 	}

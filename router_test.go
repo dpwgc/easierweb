@@ -1,9 +1,11 @@
 package easierweb
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"golang.org/x/net/websocket"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -225,11 +227,37 @@ func routerTestHttpSendExecute() {
 
 func routerTestHttpClient(method, uri, body string) {
 	fmt.Printf("\n[TestRouter](routerTestHttpClient) request method: %s, uri: %s, body: %s \n", method, uri, body)
-	code, result, err := HTTP(method, "http://localhost/test/router"+uri, []byte(body))
+	code, result, err := requestDo(method, "http://localhost/test/router"+uri, []byte(body))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("[TestRouter](routerTestHttpClient) response code: %v, data -> %s \n", code, string(result))
+}
+
+func requestDo(method, url string, body []byte, header ...map[string]string) (int, Data, error) {
+	request, err := http.NewRequest(method, url, bytes.NewReader(body))
+	if err != nil {
+		return 0, nil, err
+	}
+	if len(header) > 0 {
+		for _, h := range header {
+			for k, v := range h {
+				request.Header.Set(k, v)
+			}
+		}
+	}
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(response.Body)
+	result, err := io.ReadAll(response.Body)
+	if err != nil {
+		return 0, nil, err
+	}
+	return response.StatusCode, result, nil
 }
 
 type routerTestDTO struct {
