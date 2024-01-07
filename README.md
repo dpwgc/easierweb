@@ -96,6 +96,12 @@ func hello(ctx *easierweb.Context) {
 
 > `GET` http://localhost/hello/easierweb
 
+### Response data
+
+```
+hello easierweb
+```
+
 ***
 
 ## Easier usage
@@ -126,7 +132,7 @@ func main() {
    log.Fatal(router.Run(":80"))
 }
 
-// post method request handle
+// request handle
 func submit(ctx *easierweb.Context, req Request) *Response {
 	
    // print the request data
