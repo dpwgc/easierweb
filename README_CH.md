@@ -8,7 +8,7 @@
 
 ## 功能
 * 具有更简洁的 API 代码编写方式，可以自动绑定请求数据、自动写入响应数据。
-* 内置了方便快捷的 Websocket、SSE、文件服务功能函数。
+* 内置了 Websocket连接、SSE推送、文件服务、HTTP 客户端等功能。
 * 提供 API 分组功能，自定义根级、组级、函数级中间件。
 * 高度可定制，可以自定义错误捕获和请求/响应数据处理。
 * 没有依赖过多的第三方包，架构简单。
@@ -177,7 +177,7 @@ type Response struct {
 
 ### 其他说明
 
-* 如果想使用 'EasyXXX' 系列函数. 传入的 API 函数必须遵循如下格式。
+* 如果想使用 'EasyXXX' 系列函数，传入的 API 函数必须遵循如下格式。
 
 ```go
 // 第一个传入参数必须为 Context
@@ -206,7 +206,7 @@ router := easierweb.New(easierweb.RouterOptions{
 })
 ```
 
-* 'EasyXXX' 系列函数兼容基础用法。也可以使用 'WriteXXX' 系列函数来写入响应数据。
+* 'EasyXXX' 系列函数兼容基础用法，也可以使用 'WriteXXX' 系列函数来写入响应数据。
 
 ```go
 func TestAPI(ctx *easierweb.Context, req Request) {

@@ -10,7 +10,7 @@
 
 ## Features
 * Have a more concise way to write API. Can automatic binding query/form/body data and writing response.
-* Built-in convenient websocket, server-sent events (SSE), file server, HTTP client functions.
+* Built-in websocket, server-sent events (SSE), file server, HTTP client functions.
 * Group APIs. Custom root-level, group-level, function-level middleware.
 * Highly customizable. Custom error, request and response handle functions.
 * No dependencies on too many third-party packages. Architecture is simple.
