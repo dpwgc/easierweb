@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/websocket"
 	"log/slog"
 	"net/http"
+	"sync"
 )
 
 const (
@@ -40,6 +41,7 @@ type Router struct {
 	requestHandle          RequestHandle
 	responseHandle         ResponseHandle
 	logger                 *slog.Logger
+	contextPool            *sync.Pool
 	closeConsolePrint      bool
 }
 
@@ -51,6 +53,11 @@ func New(opts ...RouterOptions) *Router {
 		requestHandle:          defaultRequestHandle(),
 		responseHandle:         defaultResponseHandle(),
 		logger:                 slog.Default(),
+		contextPool: &sync.Pool{
+			New: func() any {
+				return new(Context)
+			},
+		},
 	}
 	for _, v := range opts {
 		if v.RootPath != "" {
