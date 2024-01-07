@@ -30,7 +30,7 @@ func (d *Data) SaveJSON(obj any) error {
 }
 
 func (d *Data) SaveYAML(obj any) error {
-	marshal, err := json.Marshal(obj)
+	marshal, err := yaml.Marshal(obj)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (d *Data) SaveYAML(obj any) error {
 }
 
 func (d *Data) SaveXML(obj any) error {
-	marshal, err := json.Marshal(obj)
+	marshal, err := xml.Marshal(obj)
 	if err != nil {
 		return err
 	}
