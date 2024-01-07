@@ -2,9 +2,7 @@ package easierweb
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 )
@@ -88,24 +86,9 @@ func groupTeatApi(ctx *Context) {
 
 func groupTeatHttpClient(method, uri, body string) {
 	fmt.Printf("\n[TestGroup](groupTeatHttpClient) request method: %s, uri: %s, body: %s \n", method, uri, body)
-	var payload = strings.NewReader(body)
-	request, err := http.NewRequest(method, "http://localhost/test/group"+uri, payload)
+	code, result, err := HTTP(method, "http://localhost/test/group"+uri, []byte(body))
 	if err != nil {
 		panic(err)
 	}
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		panic(err)
-	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
-	result, err := io.ReadAll(response.Body)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("[TestGroup](groupTeatHttpClient) response code: %v, data -> %s \n", response.StatusCode, string(result))
+	fmt.Printf("[TestGroup](groupTeatHttpClient) response code: %v, data -> %s \n", code, string(result))
 }

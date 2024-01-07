@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/net/websocket"
-	"io"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 )
@@ -18,7 +16,7 @@ func TestRouter(t *testing.T) {
 	fmt.Println("\n[TestRouter] start")
 
 	router := New(RouterOptions{
-		RootPath: "/test/simple",
+		RootPath: "/test/router",
 	}).Use(routerTestMiddleware)
 
 	// set handles
@@ -178,7 +176,7 @@ func routerTestWebsocketConnect(ctx *Context) {
 
 func routerTestWebsocketClientExecute() {
 	origin := "http://localhost/"
-	url := "ws://localhost/test/simple/ws"
+	url := "ws://localhost/test/router/ws"
 	ws, err := websocket.Dial(url, "", origin)
 	if err != nil {
 		panic(err)
@@ -227,26 +225,11 @@ func routerTestHttpSendExecute() {
 
 func routerTestHttpClient(method, uri, body string) {
 	fmt.Printf("\n[TestRouter](routerTestHttpClient) request method: %s, uri: %s, body: %s \n", method, uri, body)
-	var payload = strings.NewReader(body)
-	request, err := http.NewRequest(method, "http://localhost/test/simple"+uri, payload)
+	code, result, err := HTTP(method, "http://localhost/test/router"+uri, []byte(body))
 	if err != nil {
 		panic(err)
 	}
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		panic(err)
-	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
-	result, err := io.ReadAll(response.Body)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("[TestRouter](routerTestHttpClient) response code: %v, data -> %s \n", response.StatusCode, string(result))
+	fmt.Printf("[TestRouter](routerTestHttpClient) response code: %v, data -> %s \n", code, string(result))
 }
 
 type routerTestDTO struct {

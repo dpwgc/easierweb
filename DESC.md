@@ -295,3 +295,20 @@ ctx.Body.SaveYAML(request)
 ctx.Body.SaveXML(request)
 ctx.Body.Save([]byte("hello"))
 ```
+
+***
+
+## HTTP Client
+
+```go
+easierweb.HTTP("POST", "http://localhost/hello", []byte("hello"))
+easierweb.GET("http://localhost/hello")
+easierweb.HEAD("http://localhost/hello")
+easierweb.OPTIONS("http://localhost/hello")
+easierweb.POST("http://localhost/hello", []byte("hello"))
+easierweb.PUT("http://localhost/hello", []byte("hello"))
+easierweb.PATCH("http://localhost/hello", []byte("hello"))
+easierweb.DELETE("http://localhost/hello")
+// set header
+easierweb.GET("http://localhost/hello", easierweb.Params{"token": "123"})
+```

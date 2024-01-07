@@ -11,16 +11,6 @@ import (
 	"sync"
 )
 
-const (
-	GET     = "GET"
-	HEAD    = "HEAD"
-	OPTIONS = "OPTIONS"
-	POST    = "POST"
-	PUT     = "PUT"
-	PATCH   = "PATCH"
-	DELETE  = "DELETE"
-)
-
 type RouterOptions struct {
 	RootPath               string
 	MultipartFormMaxMemory int64
@@ -86,31 +76,31 @@ func New(opts ...RouterOptions) *Router {
 // easier usage function
 
 func (r *Router) EasyGET(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(GET, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodGET, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyHEAD(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(HEAD, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodHEAD, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyOPTIONS(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(OPTIONS, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodOPTIONS, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPOST(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(POST, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodPOST, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPUT(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(PUT, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodPUT, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPATCH(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(PATCH, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodPATCH, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyDELETE(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(DELETE, path, easyHandle, middlewares...)
+	return r.EasyHandle(MethodDELETE, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyHandle(method, path string, easyHandle any, middlewares ...Handle) *Router {
@@ -124,34 +114,34 @@ func (r *Router) EasyAny(path string, easyHandle any, middlewares ...Handle) *Ro
 // basic usage function
 
 func (r *Router) GET(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(GET, path, handle, middlewares...)
+	return r.Handle(MethodGET, path, handle, middlewares...)
 }
 
 func (r *Router) HEAD(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(HEAD, path, handle, middlewares...)
+	return r.Handle(MethodHEAD, path, handle, middlewares...)
 }
 
 func (r *Router) OPTIONS(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(OPTIONS, path, handle, middlewares...)
+	return r.Handle(MethodOPTIONS, path, handle, middlewares...)
 }
 
 func (r *Router) POST(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(POST, path, handle, middlewares...)
+	return r.Handle(MethodPOST, path, handle, middlewares...)
 }
 
 func (r *Router) PUT(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(PUT, path, handle, middlewares...)
+	return r.Handle(MethodPUT, path, handle, middlewares...)
 }
 
 func (r *Router) PATCH(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(PATCH, path, handle, middlewares...)
+	return r.Handle(MethodPATCH, path, handle, middlewares...)
 }
 
 func (r *Router) DELETE(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(DELETE, path, handle, middlewares...)
+	return r.Handle(MethodDELETE, path, handle, middlewares...)
 }
 
-var methodNames = []string{GET, HEAD, OPTIONS, POST, PUT, PATCH, DELETE}
+var methodNames = []string{MethodGET, MethodHEAD, MethodOPTIONS, MethodPOST, MethodPUT, MethodPATCH, MethodDELETE}
 
 func (r *Router) Any(path string, handle Handle, middlewares ...Handle) *Router {
 	for _, method := range methodNames {
