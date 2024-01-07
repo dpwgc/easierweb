@@ -115,14 +115,15 @@ package main
 import (
    "fmt"
    "github.com/dpwgc/easierweb"
+   "github.com/dpwgc/easierweb/middlewares"
    "log"
 )
 
 // 简单用法
 func main() {
 	
-   // 创建一个路由
-   router := easierweb.New()
+   // 创建一个路由并设置中间件
+   router := easierweb.New().Use(middlewares.Logger())
    
    // 添加一个 API (使用 'EasyXXX' 函数添加)
    router.EasyPOST("/submit", submit)
