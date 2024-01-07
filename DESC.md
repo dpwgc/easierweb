@@ -67,7 +67,7 @@ router.StaticFS("/hello", http.Dir("demo"))
 router.Run(":80")
 // start server with TLS & HTTP2
 router.RunTLS("0.0.0.0:443", "cert.pem", "private.key", &tls.Config{})
-// custom HTTP server
+// custom HTTP server and start server
 router.Serve(&http.Server{})
 router.ServeTLS(&http.Server{}, "cert.pem", "private.key")
 // close server
@@ -111,13 +111,13 @@ ctx.Abort()
 ### Bind Request Data
 
 ```go
-// bind uri query parameters
+// bind uri query parameters (based on mapstructure)
 ctx.BindQuery(&request)
-// bind uri path parameters
+// bind uri path parameters (based on mapstructure)
 ctx.BindPath(&request)
-// bind form parameters
+// bind form parameters (based on mapstructure)
 ctx.BindForm(&request)
-// bind header parameters
+// bind header parameters (based on mapstructure)
 ctx.BindHeader(&request)
 // bind body data
 ctx.BindJSON(&request)
