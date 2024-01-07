@@ -68,9 +68,9 @@ func (g *Group) EasyAny(path string, easyHandle any, middlewares ...Handle) *Gro
 	return g
 }
 
-func (g *Group) EasyHandle(method, path string, easyHandle any, middlewares ...Handle) *Group {
+func (g *Group) EasyAPI(method, path string, easyHandle any, middlewares ...Handle) *Group {
 	middlewares = append(g.middlewares, middlewares...)
-	g.router.EasyHandle(method, g.path+path, easyHandle, middlewares...)
+	g.router.EasyAPI(method, g.path+path, easyHandle, middlewares...)
 	return g
 }
 
@@ -124,9 +124,9 @@ func (g *Group) Any(path string, handle Handle, middlewares ...Handle) *Group {
 	return g
 }
 
-func (g *Group) Handle(method, path string, handle Handle, middlewares ...Handle) *Group {
+func (g *Group) API(method, path string, handle Handle, middlewares ...Handle) *Group {
 	middlewares = append(g.middlewares, middlewares...)
-	g.router.Handle(method, g.path+path, handle, middlewares...)
+	g.router.API(method, g.path+path, handle, middlewares...)
 	return g
 }
 

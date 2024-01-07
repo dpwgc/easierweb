@@ -76,35 +76,35 @@ func New(opts ...RouterOptions) *Router {
 // easier usage function
 
 func (r *Router) EasyGET(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodGET, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodGET, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyHEAD(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodHEAD, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodHEAD, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyOPTIONS(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodOPTIONS, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodOPTIONS, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPOST(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodPOST, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodPOST, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPUT(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodPUT, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodPUT, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyPATCH(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodPATCH, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodPATCH, path, easyHandle, middlewares...)
 }
 
 func (r *Router) EasyDELETE(path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.EasyHandle(MethodDELETE, path, easyHandle, middlewares...)
+	return r.EasyAPI(MethodDELETE, path, easyHandle, middlewares...)
 }
 
-func (r *Router) EasyHandle(method, path string, easyHandle any, middlewares ...Handle) *Router {
-	return r.Handle(method, path, r.easyHandle(easyHandle), middlewares...)
+func (r *Router) EasyAPI(method, path string, easyHandle any, middlewares ...Handle) *Router {
+	return r.API(method, path, r.easyHandle(easyHandle), middlewares...)
 }
 
 func (r *Router) EasyAny(path string, easyHandle any, middlewares ...Handle) *Router {
@@ -114,43 +114,43 @@ func (r *Router) EasyAny(path string, easyHandle any, middlewares ...Handle) *Ro
 // basic usage function
 
 func (r *Router) GET(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodGET, path, handle, middlewares...)
+	return r.API(MethodGET, path, handle, middlewares...)
 }
 
 func (r *Router) HEAD(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodHEAD, path, handle, middlewares...)
+	return r.API(MethodHEAD, path, handle, middlewares...)
 }
 
 func (r *Router) OPTIONS(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodOPTIONS, path, handle, middlewares...)
+	return r.API(MethodOPTIONS, path, handle, middlewares...)
 }
 
 func (r *Router) POST(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodPOST, path, handle, middlewares...)
+	return r.API(MethodPOST, path, handle, middlewares...)
 }
 
 func (r *Router) PUT(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodPUT, path, handle, middlewares...)
+	return r.API(MethodPUT, path, handle, middlewares...)
 }
 
 func (r *Router) PATCH(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodPATCH, path, handle, middlewares...)
+	return r.API(MethodPATCH, path, handle, middlewares...)
 }
 
 func (r *Router) DELETE(path string, handle Handle, middlewares ...Handle) *Router {
-	return r.Handle(MethodDELETE, path, handle, middlewares...)
+	return r.API(MethodDELETE, path, handle, middlewares...)
 }
 
 var methodNames = []string{MethodGET, MethodHEAD, MethodOPTIONS, MethodPOST, MethodPUT, MethodPATCH, MethodDELETE}
 
 func (r *Router) Any(path string, handle Handle, middlewares ...Handle) *Router {
 	for _, method := range methodNames {
-		r.Handle(method, path, handle, middlewares...)
+		r.API(method, path, handle, middlewares...)
 	}
 	return r
 }
 
-func (r *Router) Handle(method, path string, handle Handle, middlewares ...Handle) *Router {
+func (r *Router) API(method, path string, handle Handle, middlewares ...Handle) *Router {
 	route := r.rootPath + path
 	r.router.Handle(method, route, func(res http.ResponseWriter, req *http.Request, par httprouter.Params) {
 		r.handle(route, handle, res, req, par, nil, false, middlewares...)
