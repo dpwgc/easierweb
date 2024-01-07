@@ -44,6 +44,7 @@ func DELETE(url string, header ...map[string]string) (int, Data, error) {
 	return HTTP(MethodDELETE, url, nil, header...)
 }
 
+// HTTP return code, result and error
 func HTTP(method, url string, body []byte, header ...map[string]string) (int, Data, error) {
 	request, err := http.NewRequest(method, url, bytes.NewReader(body))
 	if err != nil {
