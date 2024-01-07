@@ -73,6 +73,16 @@ func New(opts ...RouterOptions) *Router {
 	return r
 }
 
+const (
+	MethodGET     = "GET"
+	MethodHEAD    = "HEAD"
+	MethodOPTIONS = "OPTIONS"
+	MethodPOST    = "POST"
+	MethodPUT     = "PUT"
+	MethodPATCH   = "PATCH"
+	MethodDELETE  = "DELETE"
+)
+
 // easier usage function
 
 func (r *Router) EasyGET(path string, easyHandle any, middlewares ...Handle) *Router {
