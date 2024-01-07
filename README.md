@@ -4,14 +4,16 @@
 
 ### Based on [httprouter](https://github.com/julienschmidt/httprouter)
 
+### [中文文档](./README_CH.md)
+
 ***
 
 ## Features
 * Have a more concise way to write API. Can automatic binding query/form/body data and writing response.
-* Highly customizable. Custom error capture and request/response data handling.
-* No dependencies on too many third-party packages. Architecture is simple.
 * Built-in convenient websocket, server-sent events(SSE), file server functions.
 * Group APIs. Custom root-level, group-level, function-level middleware.
+* Highly customizable. Custom error capture and request/response data handling.
+* No dependencies on too many third-party packages. Architecture is simple.
 * Support TLS and HTTP2.
 
 ***
@@ -47,7 +49,7 @@ go get github.com/dpwgc/easierweb
 ### `1` Basic usage : like gin and echo ( no reflect, fast )
 ### `2` Easier usage : like spring boot ( more concise way to write API handle )
 
-#### Detailed description of the function usage -> [DESC.md](./DESC.md)
+#### [Description of function usage](./DESC.md)
 
 ***
 
@@ -80,7 +82,7 @@ func main() {
    log.Fatal(router.Run(":80"))
 }
 
-// request handle
+// api handle
 func hello(ctx *easierweb.Context) {
 
    // get the path parameters
@@ -132,7 +134,7 @@ func main() {
    log.Fatal(router.Run(":80"))
 }
 
-// request handle
+// api handle
 func submit(ctx *easierweb.Context, req Request) *Response {
 	
    // print the request data
@@ -201,7 +203,7 @@ router.EasyPOST("/test", TestAPI)
 * If you want to change the format. You can use the plugins provided by the framework as described below. Or you can implement them by yourself.
 
 ```go
-// use xml format to process request and response data (global configuration, takes effect for all api)
+// use xml format to process request and response data
 router := easierweb.New(easierweb.RouterOptions{
    RequestHandle: plugins.XMLRequestHandle(),
    ResponseHandle: plugins.XMLResponseHandle(),
