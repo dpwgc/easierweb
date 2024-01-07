@@ -43,7 +43,7 @@ func (r *Router) handle(route string, handle Handle, res http.ResponseWriter, re
 		res.Header().Set("Access-Control-Allow-Origin", "*")
 		flusher, ok := res.(http.Flusher)
 		if !ok {
-			panic("client does not support server-sent events")
+			panic(errors.New("client does not support server-sent events"))
 		}
 		ctx.Flusher = flusher
 	}
