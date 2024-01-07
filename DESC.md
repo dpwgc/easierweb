@@ -34,7 +34,7 @@ router.PUT("/hello", hello)
 router.PATCH("/hello", hello)
 router.DELETE("/hello", hello)
 router.Any("/hello", hello)
-router.Handle("GET", "/hello", hello)
+router.API("GET", "/hello", hello)
 
 // APIs (easier usage)
 router.EasyGET("/hello", hello)
@@ -45,7 +45,7 @@ router.EasyPUT("/hello", hello)
 router.EasyPATCH("/hello", hello)
 router.EasyDELETE("/hello", hello)
 router.EasyAny("/hello", hello)
-router.EasyHandle("GET", "/hello", hello)
+router.EasyAPI("GET", "/hello", hello)
 ```
 
 ### Set Other Handle
@@ -301,6 +301,7 @@ ctx.Body.Save([]byte("hello"))
 ## HTTP Client
 
 ```go
+// return code, result and error
 easierweb.HTTP("POST", "http://localhost/hello", []byte("hello"))
 easierweb.GET("http://localhost/hello")
 easierweb.HEAD("http://localhost/hello")
@@ -310,5 +311,6 @@ easierweb.PUT("http://localhost/hello", []byte("hello"))
 easierweb.PATCH("http://localhost/hello", []byte("hello"))
 easierweb.DELETE("http://localhost/hello")
 // set header
-easierweb.GET("http://localhost/hello", easierweb.Params{"token": "123"})
+easierweb.GET("http://localhost/hello", easierweb.Params{"User-Token": "123"})
+easierweb.POST("http://localhost/hello", []byte("hello"), easierweb.Params{"User-Token": "123"})
 ```
