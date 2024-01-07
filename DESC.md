@@ -270,3 +270,28 @@ ctx.Query.Int64("hello")
 ctx.Query.Float32("hello")
 ctx.Query.Float64("hello")
 ```
+
+***
+
+## easierweb.Data
+
+### `ctx.Body` `ctx.Result`
+
+### Parse
+
+```go
+// parse response data
+ctx.Result.ParseJSON(&response)
+ctx.Result.ParseYAML(&response)
+ctx.Result.ParseXML(&response)
+```
+
+### Save
+
+```go
+// overwrite request body data
+ctx.Body.SaveJSON(request)
+ctx.Body.SaveYAML(request)
+ctx.Body.SaveXML(request)
+ctx.Body.Save([]byte("hello"))
+```

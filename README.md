@@ -42,12 +42,12 @@ go get github.com/dpwgc/easierweb
 
 ## Example
 
-### Framework offers two different styles of use
+### Framework provides two different styles of writing API handles
 
 ### `1` Basic usage : like gin and echo ( no reflect, fast )
 ### `2` Easier usage : like spring boot ( more concise way to write API handle )
 
-### Detailed description of the function usage -> [DESC.md](./DESC.md)
+#### Detailed description of the function usage -> [DESC.md](./DESC.md)
 
 ***
 
