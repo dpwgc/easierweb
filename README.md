@@ -118,14 +118,15 @@ package main
 import (
    "fmt"
    "github.com/dpwgc/easierweb"
+   "github.com/dpwgc/easierweb/middlewares"
    "log"
 )
 
 // easier usage example
 func main() {
 	
-   // create a router
-   router := easierweb.New()
+   // create a router and set middleware
+   router := easierweb.New().Use(middlewares.Logger())
    
    // set api handle (use function 'EasyXXX')
    router.EasyPOST("/submit", submit)
