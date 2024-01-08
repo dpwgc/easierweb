@@ -49,7 +49,7 @@ func defaultResponseHandle() ResponseHandle {
 
 func defaultErrorHandle() ErrorHandle {
 	return func(ctx *Context, err any) {
-		ctx.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		ctx.Logger.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
 		ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("{\"error\":\"%s\"}", err))
 	}
 }

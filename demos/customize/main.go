@@ -46,7 +46,7 @@ func main() {
 
 func customErrorHandle() easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		ctx.Error("unexpected error", slog.String("error", fmt.Sprintf("%s", err)))
+		ctx.Logger.Error("unexpected error", slog.String("error", fmt.Sprintf("%s", err)))
 		ctx.WriteString(http.StatusBadRequest, "unexpected error!!!")
 	}
 }

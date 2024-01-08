@@ -213,12 +213,10 @@ ctx.Proto()
 ### Logger
 
 ```go
-ctx.Info("hello")
-ctx.Debug("hello")
-ctx.Warn("hello")
-ctx.Error(errors.New("hello"))
-// log error and panic error
-ctx.Panic(errors.New("hello"))
+ctx.Logger.Info("hello")
+ctx.Logger.Debug("hello")
+ctx.Logger.Warn("hello")
+ctx.Logger.Error("hello")
 ```
 
 ***

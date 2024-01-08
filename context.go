@@ -374,29 +374,6 @@ func (c *Context) Proto() string {
 	return c.Request.Proto
 }
 
-// log
-
-func (c *Context) Info(msg string, args ...any) {
-	c.Logger.Info(msg, args...)
-}
-
-func (c *Context) Debug(msg string, args ...any) {
-	c.Logger.Debug(msg, args...)
-}
-
-func (c *Context) Warn(msg string, args ...any) {
-	c.Logger.Warn(msg, args...)
-}
-
-func (c *Context) Error(err any, args ...any) {
-	c.Logger.Error(fmt.Sprintf("%s", err), args...)
-}
-
-func (c *Context) Panic(err any, args ...any) {
-	c.Error(err, args...)
-	panic(err)
-}
-
 // Set
 
 func setContext(ctx *Context, router *Router, route string, res http.ResponseWriter, req *http.Request, par httprouter.Params, ws *websocket.Conn, middlewares ...Handle) error {
