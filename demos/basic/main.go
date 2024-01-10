@@ -181,7 +181,7 @@ func DemoDownload(ctx *easierweb.Context) {
 	// get the local file and return file data
 	// if the contentType parameter is not specified, application/octet-stream is the default
 	// if the fileName parameter is not specified, the file name is a timestamp by default
-	ctx.WriteLocalFile("", ctx.Path.Get("fileName"), ctx.Path.Get("fileName"))
+	ctx.WriteLocalFile(ctx.Path.Get("fileName"), ctx.Path.Get("fileName"))
 
 	// returns the byte data of the file directly
 	// ctx.WriteFile("", ctx.Path.Get("fileName"), []byte{})

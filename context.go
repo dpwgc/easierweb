@@ -110,6 +110,7 @@ func (c *Context) WriteJSON(code int, obj any) {
 	if err != nil {
 		panic(err)
 	}
+	c.AddContentType("application/json; charset=utf-8")
 	c.Write(code, marshal)
 }
 
@@ -121,6 +122,7 @@ func (c *Context) WriteYAML(code int, obj any) {
 	if err != nil {
 		panic(err)
 	}
+	c.AddContentType("application/x-yaml; charset=utf-8")
 	c.Write(code, marshal)
 }
 
@@ -132,6 +134,7 @@ func (c *Context) WriteXML(code int, obj any) {
 	if err != nil {
 		panic(err)
 	}
+	c.AddContentType("application/xml; charset=utf-8")
 	c.Write(code, marshal)
 }
 
@@ -142,7 +145,7 @@ func (c *Context) Redirect(code int, url string) {
 	http.Redirect(c.ResponseWriter, c.Request, url, code)
 }
 
-func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
+func (c *Context) WriteLocalFile(fileName, localFilePath string) {
 	if c.written {
 		return
 	}
@@ -150,10 +153,10 @@ func (c *Context) WriteLocalFile(contentType, fileName, localFilePath string) {
 	if err != nil {
 		panic(err)
 	}
-	c.WriteFile(contentType, fileName, fileBytes)
+	c.WriteFile(fileName, fileBytes)
 }
 
-func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
+func (c *Context) WriteFile(fileName string, fileBytes []byte) {
 	if c.written {
 		return
 	}
@@ -162,18 +165,23 @@ func (c *Context) WriteFile(contentType, fileName string, fileBytes []byte) {
 	} else {
 		c.SetContentDisposition(fmt.Sprintf("attachment; filename=\"%v\"", time.Now().Unix()))
 	}
-	if len(contentType) == 0 {
-		c.SetContentType("application/octet-stream")
-	} else {
-		c.SetContentType(contentType)
-	}
+	c.AddContentType("application/octet-stream")
 	c.Write(http.StatusOK, fileBytes)
+}
+
+func (c *Context) WriteHTML(code int, html string) {
+	if c.written {
+		return
+	}
+	c.AddContentType("text/html; charset=utf-8")
+	c.Write(code, []byte(html))
 }
 
 func (c *Context) WriteString(code int, text string) {
 	if c.written {
 		return
 	}
+	c.AddContentType("text/plain; charset=utf-8")
 	c.Write(code, []byte(text))
 }
 
@@ -193,6 +201,14 @@ func (c *Context) Write(code int, data []byte) {
 	c.Code = code
 	c.Result = data
 	c.written = true
+}
+
+func (c *Context) AddContentType(value string) {
+	c.AddHeader("Content-Type", value)
+}
+
+func (c *Context) AddContentDisposition(value string) {
+	c.AddHeader("Content-Disposition", value)
 }
 
 func (c *Context) SetContentType(value string) {
