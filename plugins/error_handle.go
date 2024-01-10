@@ -3,14 +3,21 @@ package plugins
 import (
 	"fmt"
 	"github.com/dpwgc/easierweb"
+	"log/slog"
 	"net/http"
+	"runtime/debug"
 )
 
-func JSONErrorHandle(returnError bool) easierweb.ErrorHandle {
+type ErrorHandleOptions struct {
+	ShowError   bool
+	OutputStack bool
+}
+
+func JSONErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		ctx.Logger.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		logError(ctx, err, opts...)
 		res := make(map[string]string, 1)
-		if returnError {
+		if len(opts) > 0 && opts[0].ShowError {
 			res["error"] = fmt.Sprintf("%s", err)
 		} else {
 			res["error"] = "unexpected error"
@@ -19,11 +26,11 @@ func JSONErrorHandle(returnError bool) easierweb.ErrorHandle {
 	}
 }
 
-func YAMLErrorHandle(returnError bool) easierweb.ErrorHandle {
+func YAMLErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		ctx.Logger.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		logError(ctx, err, opts...)
 		res := make(map[string]string, 1)
-		if returnError {
+		if len(opts) > 0 && opts[0].ShowError {
 			res["error"] = fmt.Sprintf("%s", err)
 		} else {
 			res["error"] = "unexpected error"
@@ -32,11 +39,11 @@ func YAMLErrorHandle(returnError bool) easierweb.ErrorHandle {
 	}
 }
 
-func XMLErrorHandle(returnError bool) easierweb.ErrorHandle {
+func XMLErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		ctx.Logger.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
+		logError(ctx, err, opts...)
 		res := make(map[string]string, 1)
-		if returnError {
+		if len(opts) > 0 && opts[0].ShowError {
 			res["error"] = fmt.Sprintf("%s", err)
 		} else {
 			res["error"] = "unexpected error"
@@ -45,13 +52,21 @@ func XMLErrorHandle(returnError bool) easierweb.ErrorHandle {
 	}
 }
 
-func StringErrorHandle(returnError bool) easierweb.ErrorHandle {
+func StringErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
-		ctx.Logger.Error(fmt.Sprintf("%s -> [%s]%s | unexpected error: %s", ctx.Request.RemoteAddr, ctx.Request.Method, ctx.Request.RequestURI, err))
-		res := "unexpected error"
-		if returnError {
-			res = fmt.Sprintf("%s", err)
+		logError(ctx, err, opts...)
+		if len(opts) > 0 && opts[0].ShowError {
+			ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("%s", err))
+		} else {
+			ctx.WriteString(http.StatusInternalServerError, "unexpected error")
 		}
-		ctx.WriteString(http.StatusInternalServerError, res)
+	}
+}
+
+func logError(ctx *easierweb.Context, err any, opts ...ErrorHandleOptions) {
+	if len(opts) > 0 && opts[0].OutputStack {
+		ctx.Logger.Error(fmt.Sprintf("%s\n%s", err, string(debug.Stack())), slog.String("method", ctx.Request.Method), slog.String("route", ctx.Route))
+	} else {
+		ctx.Logger.Error(fmt.Sprintf("%s", err), slog.String("method", ctx.Request.Method), slog.String("route", ctx.Route))
 	}
 }

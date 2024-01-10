@@ -30,7 +30,12 @@ func main() {
 	// use framework plugins
 	router := easierweb.New(easierweb.RouterOptions{
 		// respond to error messages in xml format
-		ErrorHandle: plugins.XMLErrorHandle(false),
+		ErrorHandle: plugins.XMLErrorHandle(plugins.ErrorHandleOptions{
+			// render an error in the response body
+			ShowError: true,
+			// output stack info in logs
+			OutputStack: true,
+		}),
 		// request data is parsed and automatically bound using xml format
 		RequestHandle: plugins.XMLRequestHandle(),
 		// write response data in xml format
