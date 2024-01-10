@@ -52,6 +52,6 @@ func defaultResponseHandle() ResponseHandle {
 func defaultErrorHandle() ErrorHandle {
 	return func(ctx *Context, err any) {
 		ctx.Logger.Error(fmt.Sprintf("%s\n%s", err, string(debug.Stack())), slog.String("method", ctx.Request.Method), slog.String("route", ctx.Route))
-		ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("{\"error\":\"%s\"}", err))
+		ctx.WriteString(http.StatusInternalServerError, fmt.Sprintf("{\"msg\":\"%s\"}", err))
 	}
 }

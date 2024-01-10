@@ -13,14 +13,18 @@ type ErrorHandleOptions struct {
 	OutputStack bool
 }
 
+type Err struct {
+	Msg string `json:"msg" xml:"Msg" yaml:"msg"`
+}
+
 func JSONErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
 		logError(ctx, err, opts...)
-		res := make(map[string]string, 1)
+		res := Err{}
 		if len(opts) > 0 && opts[0].ShowError {
-			res["error"] = fmt.Sprintf("%s", err)
+			res.Msg = fmt.Sprintf("%s", err)
 		} else {
-			res["error"] = "unexpected error"
+			res.Msg = "unexpected error"
 		}
 		ctx.WriteJSON(http.StatusInternalServerError, res)
 	}
@@ -29,11 +33,11 @@ func JSONErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 func YAMLErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
 		logError(ctx, err, opts...)
-		res := make(map[string]string, 1)
+		res := Err{}
 		if len(opts) > 0 && opts[0].ShowError {
-			res["error"] = fmt.Sprintf("%s", err)
+			res.Msg = fmt.Sprintf("%s", err)
 		} else {
-			res["error"] = "unexpected error"
+			res.Msg = "unexpected error"
 		}
 		ctx.WriteYAML(http.StatusInternalServerError, res)
 	}
@@ -42,11 +46,11 @@ func YAMLErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 func XMLErrorHandle(opts ...ErrorHandleOptions) easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
 		logError(ctx, err, opts...)
-		res := make(map[string]string, 1)
+		res := Err{}
 		if len(opts) > 0 && opts[0].ShowError {
-			res["error"] = fmt.Sprintf("%s", err)
+			res.Msg = fmt.Sprintf("%s", err)
 		} else {
-			res["error"] = "unexpected error"
+			res.Msg = "unexpected error"
 		}
 		ctx.WriteXML(http.StatusInternalServerError, res)
 	}
