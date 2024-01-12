@@ -7,7 +7,7 @@
 ***
 
 ## 功能
-* 具有更简洁的 API 代码编写方式，可以自动绑定请求数据、自动写入响应数据。
+* 具有更简洁的 API 代码编写方式，可以自动绑定请求数据、自动序列化写入响应数据。
 * 内置了 Websocket连接、SSE推送、文件服务、HTTP 客户端等功能。
 * 提供 API 分组功能，自定义根级、组级、函数级中间件。
 * 高度可定制，可以自定义错误捕获和请求/响应数据处理。
@@ -19,7 +19,7 @@
 一个简单的API示例
 
 ```go
-// 自动绑定查询参数/表单参数/Body数据，自动写入响应数据
+// 自动绑定查询参数/表单参数/Body数据，自动序列化写入响应数据
 func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
 
    // 打印请求数据
@@ -38,16 +38,22 @@ func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, err
 go get github.com/dpwgc/easierweb
 ```
 
+* 指定版本
+
+```
+go get github.com/dpwgc/easierweb@v1.0.4.14
+```
+
 ***
 
 ## 示例
 
-### 框架提供了两种不同风格的API编写方式
+### 框架提供了两种不同风格的使用方式
 
 ### `1` 基础用法 : 类似 gin 和 echo（没有用到反射，性能较高）
 ### `2` 简单用法 : 类似 spring boot（更方便编写API代码）
 
-#### [函数用法说明](./DESC.md)
+### [函数使用文档](./DOC.md)
 
 ***
 
@@ -227,9 +233,9 @@ router.EasyPOST("/test", TestAPI)
 ## 演示程序
 
 * demos
-    * basic `基础用法演示`
+    * basic `基础用法演示（包含websocket、SSE、文件上传与下载）`
         * main.go
-    * easier `简单用法演示`
+    * easier `更简单的用法演示`
         * main.go
     * restful `restful应用演示`
         * main.go

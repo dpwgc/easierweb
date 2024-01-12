@@ -1,4 +1,4 @@
-# Function Description
+# Function Usage Document
 
 ***
 
@@ -295,25 +295,4 @@ ctx.Body.SaveJSON(request)
 ctx.Body.SaveYAML(request)
 ctx.Body.SaveXML(request)
 ctx.Body.Save([]byte("hello"))
-```
-
-***
-
-## Utils
-
-### HTTP Client
-
-```go
-// return code, result and error
-utils.HTTP("POST", "http://localhost/hello", []byte("hello"))
-utils.GET("http://localhost/hello")
-utils.HEAD("http://localhost/hello")
-utils.OPTIONS("http://localhost/hello")
-utils.POST("http://localhost/hello", []byte("hello"))
-utils.PUT("http://localhost/hello", []byte("hello"))
-utils.PATCH("http://localhost/hello", []byte("hello"))
-utils.DELETE("http://localhost/hello")
-// set header
-utils.GET("http://localhost/hello", easierweb.Params{"User-Token": "123"})
-utils.POST("http://localhost/hello", []byte("hello"), easierweb.Params{"User-Token": "123"})
 ```

@@ -9,8 +9,8 @@
 ***
 
 ## Features
-* Have a more concise way to write API. Can automatic binding query/form/body data and writing response.
-* Built-in websocket, server-sent events (SSE), file server, HTTP client functions.
+* Have a more concise way to write API. Can automatic binding query/form/body data and serialization writes to the response body.
+* Built-in websocket, server-sent events (SSE), file server.
 * Group APIs. Custom root-level, group-level, function-level middleware.
 * Highly customizable. Custom error, request and response handle functions.
 * No dependencies on too many third-party packages. Architecture is simple.
@@ -21,7 +21,7 @@
 Simple example of API handle
 
 ```go
-// automatic binding query/form/body data and writing response
+// automatic binding query/form/body data and serialization writes to the response body
 func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, error) {
 
    // print the request data
@@ -40,16 +40,22 @@ func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, err
 go get github.com/dpwgc/easierweb
 ```
 
+* Specify version
+
+```
+go get github.com/dpwgc/easierweb@v1.0.4.14
+```
+
 ***
 
 ## Example
 
-### Framework provides two different styles of writing API handles
+### Framework provides two different styles of usage
 
 ### `1` Basic usage : like gin and echo ( no reflect, fast )
 ### `2` Easier usage : like spring boot ( more concise way to write API handle )
 
-#### [Description of function usage](./DESC.md)
+### [Function Usage Document](./DOC.md)
 
 ***
 
@@ -233,7 +239,7 @@ router.EasyPOST("/test", TestAPI)
 ### If you want to learn more about how to use it, read the demo program
 
 * demos
-  * basic `basic usage demo`
+  * basic `basic usage demo（includes websocket, SSE, upload and download file）`
     * main.go
   * easier `easier usage demo`
     * main.go
