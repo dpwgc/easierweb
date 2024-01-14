@@ -196,17 +196,8 @@ func DemoSSE(ctx *easierweb.Context) {
 
 	for i := 0; i < 5; i++ {
 
-		// push string message, split the message with '\n\n'
-		err := ctx.Push(fmt.Sprintf("sse push %v", i), "\n\n")
-		if err != nil {
-			panic(err)
-		}
-
-		// push json message, split the message with '\n\n'
-		err = ctx.PushJSON(DemoResultDTO{
-			Msg:  "hello world",
-			Data: "Server-sent Events",
-		}, "\n\n")
+		// push SSE message, id: {i}, data: hello
+		err := ctx.Push(fmt.Sprintf("data: hello\nid: %v\n\n", i))
 		if err != nil {
 			panic(err)
 		}

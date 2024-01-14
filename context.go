@@ -323,32 +323,8 @@ func (c *Context) Close() error {
 
 // SSE Push
 
-func (c *Context) PushJSON(obj any, split string) error {
-	marshal, err := json.Marshal(obj)
-	if err != nil {
-		return err
-	}
-	return c.Push(string(marshal), split)
-}
-
-func (c *Context) PushYAML(obj any, split string) error {
-	marshal, err := yaml.Marshal(obj)
-	if err != nil {
-		return err
-	}
-	return c.Push(string(marshal), split)
-}
-
-func (c *Context) PushXML(obj any, split string) error {
-	marshal, err := xml.Marshal(obj)
-	if err != nil {
-		return err
-	}
-	return c.Push(string(marshal), split)
-}
-
-func (c *Context) Push(msg string, split string) error {
-	_, err := fmt.Fprintf(c.ResponseWriter, fmt.Sprintf("%s%s", msg, split))
+func (c *Context) Push(msg string) error {
+	_, err := fmt.Fprintf(c.ResponseWriter, msg)
 	if err != nil {
 		return err
 	}
