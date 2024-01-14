@@ -182,10 +182,7 @@ ctx.Close()
 // prerequisites for using these function: router.SSE("/hello", hello)
 
 // server-sent events (SSE) push message
-ctx.PushJSON(Message{Msg:  "hello world"}, "\n\n")
-ctx.PushYAML(Message{Msg:  "hello world"}, "\n\n")
-ctx.PushXML(Message{Msg:  "hello world"}, "\n\n")
-ctx.Push("hello world", "\n\n")
+ctx.Push("data: hello\n\n")
 ```
 
 ### File
