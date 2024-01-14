@@ -43,7 +43,7 @@ go get github.com/dpwgc/easierweb
 * Specify version
 
 ```
-go get github.com/dpwgc/easierweb@v1.0.4.14
+go get github.com/dpwgc/easierweb@v1.0.4.15
 ```
 
 ***
