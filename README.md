@@ -36,11 +36,7 @@ func helloAPI(ctx *easierweb.Context, request HelloRequest) (*HelloResponse, err
 
 ## Installation
 
-```
-go get github.com/dpwgc/easierweb
-```
-
-* Specify version
+* Specify new version
 
 ```
 go get github.com/dpwgc/easierweb@v1.0.4.15
